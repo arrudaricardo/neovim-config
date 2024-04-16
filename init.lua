@@ -76,7 +76,7 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- [[ Format ]]
-vim.keymap.set('n', '<space>f', '<cmd>lua vim.lsp.buf.format{async = true}<CR>', { desc = 'Format' })
+vim.keymap.set('n', '<space>lf', '<cmd>lua vim.lsp.buf.format{async = true}<CR>', { desc = 'Format' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -110,26 +110,6 @@ require('lazy').setup {
   {
     'numToStr/Comment.nvim',
     opts = {},
-    keys = {
-      {
-        ']t',
-        function()
-          require('todo-comments').jump_next()
-        end,
-        desc = 'Next todo comment',
-      },
-      {
-        '[t',
-        function()
-          require('todo-comments').jump_prev()
-        end,
-        desc = 'Previous todo comment',
-      },
-      { '<leader>xt', '<cmd>TodoTrouble<cr>', desc = 'Todo (Trouble)' },
-      { '<leader>xT', '<cmd>TodoTrouble keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme (Trouble)' },
-      { '<leader>st', '<cmd>TodoTelescope<cr>', desc = 'Todo' },
-      { '<leader>sT', '<cmd>TodoTelescope keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme' },
-    },
   },
 
   -- better diagnostics list and others
@@ -138,6 +118,14 @@ require('lazy').setup {
     cmd = { 'TroubleToggle', 'Trouble' },
     opts = { use_diagnostic_signs = true },
     keys = {
+      -- stylua: ignore start
+      { ']t',         function() require('todo-comments').jump_next() end, desc = 'Next todo comment', },
+      { '[t',         function() require('todo-comments').jump_prev() end, desc = 'Previous todo comment', },
+      -- stylua: ignore end
+      { '<leader>xt', '<cmd>TodoTrouble<cr>', desc = 'Todo (Trouble)' },
+      { '<leader>xT', '<cmd>TodoTrouble keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme (Trouble)' },
+      { '<leader>st', '<cmd>TodoTelescope<cr>', desc = 'Todo' },
+      { '<leader>sT', '<cmd>TodoTelescope keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme' },
       { '<leader>xx', '<cmd>TroubleToggle document_diagnostics<cr>', desc = 'Document Diagnostics (Trouble)' },
       { '<leader>xX', '<cmd>TroubleToggle workspace_diagnostics<cr>', desc = 'Workspace Diagnostics (Trouble)' },
       { '<leader>xL', '<cmd>TroubleToggle loclist<cr>', desc = 'Location List (Trouble)' },
@@ -199,15 +187,14 @@ require('lazy').setup {
 
       -- Document existing key chains
       require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>l'] = { name = '[L]sp', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>o'] = { name = '[O]verseer', _ = 'which_key_ignore' },
-        ['<leader>b'] = { name = '[B]uffer', _ = 'which_key_ignore' },
-        ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
+        ['<leader>c'] = { name = 'Code', _ = 'which_key_ignore' },
+        ['<leader>l'] = { name = 'Lsp', _ = 'which_key_ignore' },
+        ['<leader>d'] = { name = 'Document', _ = 'which_key_ignore' },
+        ['<leader>f'] = { name = 'Find', _ = 'which_key_ignore' },
+        ['<leader>w'] = { name = 'Workspace', _ = 'which_key_ignore' },
+        ['<leader>o'] = { name = 'Overseer', _ = 'which_key_ignore' },
+        ['<leader>b'] = { name = 'Buffer', _ = 'which_key_ignore' },
+        ['<leader>g'] = { name = 'Git', _ = 'which_key_ignore' },
       }
     end,
   },
@@ -237,6 +224,13 @@ require('lazy').setup {
       --  If you already have a Nerd Font, or terminal set up with fallback fonts
       --  you can enable this
       { 'nvim-tree/nvim-web-devicons' },
+      -- Live grep with args
+      {
+        'nvim-telescope/telescope-live-grep-args.nvim',
+        -- This will not install any breaking changes.
+        -- For major updates, this must be adjusted manually.
+        version = '^1.0.0',
+      },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -282,16 +276,25 @@ require('lazy').setup {
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
-      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-      vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-      vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-      vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
-      vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      local t = require 'telescope'
+      -- stylua: ignore start
+      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = 'Find Help' })
+      vim.keymap.set('n', '<leader>fb', builtin.current_buffer_fuzzy_find, { desc = 'Current Buffer Fuzzy Find' })
+      vim.keymap.set('n', '<leader>fc', builtin.colorscheme, { desc = 'Find Colorscheme' })
+      vim.keymap.set('n', '<leader>fq', builtin.quickfix, { desc = 'Find quickfix' })
+      vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = 'Find Keymaps' })
+      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' }) 
+      vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = 'Find builtin ' })
+      vim.keymap.set('n', '<leader>fg', builtin.git_files, { desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' })
+      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' }) 
+      vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' }) 
+      vim.keymap.set('n', '<leader>ft', t.extensions.live_grep_args.live_grep_args, { desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' })
+      vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
+      vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
+      vim.keymap.set('n', '<leader>fm', builtin.marks, { desc = 'Lists vim marks and their value' })
+      vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = 'Find Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = 'Find existing buffers' })
+      -- stylua: ignore end
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -331,31 +334,6 @@ require('lazy').setup {
       { 'j-hui/fidget.nvim', opts = {} },
     },
     config = function()
-      -- Brief Aside: **What is LSP?**
-      --
-      -- LSP is an acronym you've probably heard, but might not understand what it is.
-      --
-      -- LSP stands for Language Server Protocol. It's a protocol that helps editors
-      -- and language tooling communicate in a standardized fashion.
-      --
-      -- In general, you have a "server" which is some tool built to understand a particular
-      -- language (such as `gopls`, `lua_ls`, `rust_analyzer`, etc). These Language Servers
-      -- (sometimes called LSP servers, but that's kind of like ATM Machine) are standalone
-      -- processes that communicate with some "client" - in this case, Neovim!
-      --
-      -- LSP provides Neovim with features like:
-      --  - Go to definition
-      --  - Find references
-      --  - Autocompletion
-      --  - Symbol Search
-      --  - and more!
-      --
-      -- Thus, Language Servers are external tools that must be installed separately from
-      -- Neovim. This is where `mason` and related plugins come into play.
-      --
-      -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
-      -- and elegantly composed help section, `:help lsp-vs-treesitter`
-
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
@@ -376,35 +354,19 @@ require('lazy').setup {
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-T>.
-          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          map('gd', require('telescope.builtin').lsp_definitions, 'Goto Definition')
 
           -- Find references for the word under your cursor.
-          map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+          map('gr', require('telescope.builtin').lsp_references, 'Goto References')
 
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+          map('gI', require('telescope.builtin').lsp_implementations, 'Goto Implementation')
 
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>lD', require('telescope.builtin').lsp_type_definitions, '[L]SP [D]efinition')
-
-          -- Fuzzy find all the symbols in your current document.
-          --  Symbols are things like variables, functions, types, etc.
-          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-
-          -- Fuzzy find all the symbols in your current workspace
-          --  Similar to document symbols, except searches over your whole project.
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-          -- Rename the variable under your cursor
-          --  Most Language Servers support renaming across files, etc.
-          map('<leader>lr', vim.lsp.buf.rename, '[L]SP [R]ename')
-
-          -- Execute a code action, usually your cursor needs to be on top of an error
-          -- or a suggestion from your LSP for this to activate.
-          map('<leader>la', vim.lsp.buf.code_action, '[L]SP [A]ction')
+          map('gt', require('telescope.builtin').lsp_type_definitions, 'Goto Type definition')
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap
@@ -413,6 +375,31 @@ require('lazy').setup {
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+
+          -- Fuzzy find all the symbols in your current document.
+          --  Symbols are things like variables, functions, types, etc.
+          map('<leader>fs', require('telescope.builtin').lsp_document_symbols, 'Lists LSP document symbols in the current buffer')
+
+          -- Fuzzy find all the symbols in your current workspace
+          --  Similar to document symbols, except searches over your whole project.
+          -- TODO: Move
+          -- map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+
+          -- Rename the variable under your cursor
+          --  Most Language Servers support renaming across files, etc.
+          map('<leader>lr', vim.lsp.buf.rename, 'LSP Rename')
+
+          -- Execute a code action, usually your cursor needs to be on top of an error
+          -- or a suggestion from your LSP for this to activate.
+          map('<leader>la', vim.lsp.buf.code_action, 'LSP Action')
+
+          -- Git
+          map(
+            '<leader>gc',
+            require('telescope.builtin').git_commits,
+            'Lists git commits with diff preview, checkout action <cr>, reset mixed <C-r>m, reset soft <C-r>s and reset hard <C-r>h'
+          )
+          map('<leader>gc', require('telescope.builtin').git_commits, 'Git commits')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -705,7 +692,7 @@ require('lazy').setup {
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
       require('treesitter-context').setup {
         enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
-        max_lines = 5, -- How many lines the window should span. Values <= 0 mean no limit.
+        max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
         min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
         line_numbers = true,
         multiline_threshold = 10, -- Maximum number of lines to show for a single context
@@ -787,9 +774,9 @@ require('lazy').setup {
       require('neo-tree').setup {}
     end,
     lazy = false,
-    init = function()
-      vim.keymap.set('n', '<leader>e', '<cmd>Neotree toggle filesystem reveal_force_cwd position=float<cr>', { silent = true, desc = 'Neo Tree Explorer' })
-    end,
+    keys = {
+      { '<leader>e', '<cmd>Neotree toggle filesystem reveal_force_cwd position=left<cr>', desc = 'Toggle Explorer', mode = { 'n' } },
+    },
   },
 
   {
@@ -997,14 +984,14 @@ require('lazy').setup {
   -- tokyonight
   {
     'folke/tokyonight.nvim',
-    lazy = true,
+    -- lazy = true,
     opts = { style = 'moon' },
   },
 
   -- catppuccin
   {
     'catppuccin/nvim',
-    lazy = true,
+    -- lazy = true,
     name = 'catppuccin',
     opts = {
       integrations = {
@@ -1045,6 +1032,16 @@ require('lazy').setup {
     },
   },
 
+  -- nvim-surround
+  {
+    'kylechui/nvim-surround',
+    version = '*', -- Use for stability; omit to use `main` branch for the latest features
+    event = 'VeryLazy',
+    config = function()
+      require('nvim-surround').setup {}
+    end,
+  },
+
   -- better yank/paste
   {
     'gbprod/yanky.nvim',
@@ -1054,28 +1051,334 @@ require('lazy').setup {
       ring = { storage = jit.os:find 'Windows' and 'shada' or 'sqlite' },
     },
     keys = {
-        -- stylua: ignore
-      { "<leader>p", function() require("telescope").extensions.yank_history.yank_history({ }) end, desc = "Open Yank History" },
-      { 'y', '<Plug>(YankyYank)', mode = { 'n', 'x' }, desc = 'Yank text' },
-      { 'p', '<Plug>(YankyPutAfter)', mode = { 'n', 'x' }, desc = 'Put yanked text after cursor' },
-      { 'P', '<Plug>(YankyPutBefore)', mode = { 'n', 'x' }, desc = 'Put yanked text before cursor' },
-      { 'gp', '<Plug>(YankyGPutAfter)', mode = { 'n', 'x' }, desc = 'Put yanked text after selection' },
-      { 'gP', '<Plug>(YankyGPutBefore)', mode = { 'n', 'x' }, desc = 'Put yanked text before selection' },
-      { '[y', '<Plug>(YankyCycleForward)', desc = 'Cycle forward through yank history' },
-      { ']y', '<Plug>(YankyCycleBackward)', desc = 'Cycle backward through yank history' },
-      { ']p', '<Plug>(YankyPutIndentAfterLinewise)', desc = 'Put indented after cursor (linewise)' },
-      { '[p', '<Plug>(YankyPutIndentBeforeLinewise)', desc = 'Put indented before cursor (linewise)' },
-      { ']P', '<Plug>(YankyPutIndentAfterLinewise)', desc = 'Put indented after cursor (linewise)' },
-      { '[P', '<Plug>(YankyPutIndentBeforeLinewise)', desc = 'Put indented before cursor (linewise)' },
-      { '>p', '<Plug>(YankyPutIndentAfterShiftRight)', desc = 'Put and indent right' },
-      { '<p', '<Plug>(YankyPutIndentAfterShiftLeft)', desc = 'Put and indent left' },
-      { '>P', '<Plug>(YankyPutIndentBeforeShiftRight)', desc = 'Put before and indent right' },
-      { '<P', '<Plug>(YankyPutIndentBeforeShiftLeft)', desc = 'Put before and indent left' },
-      { '=p', '<Plug>(YankyPutAfterFilter)', desc = 'Put after applying a filter' },
-      { '=P', '<Plug>(YankyPutBeforeFilter)', desc = 'Put before applying a filter' },
+      -- stylua: ignore start
+      { "<leader>p", function() require("telescope").extensions.yank_history.yank_history({}) end, desc = "Open Yank History" },
+      { 'y',         '<Plug>(YankyYank)',                                                          mode = { 'n', 'x' },                                  desc = 'Yank text' },
+      { 'p',         '<Plug>(YankyPutAfter)',                                                      mode = { 'n', 'x' },                                  desc = 'Put yanked text after cursor' },
+      { 'P',         '<Plug>(YankyPutBefore)',                                                     mode = { 'n', 'x' },                                  desc = 'Put yanked text before cursor' },
+      { 'gp',        '<Plug>(YankyGPutAfter)',                                                     mode = { 'n', 'x' },                                  desc = 'Put yanked text after selection' },
+      { 'gP',        '<Plug>(YankyGPutBefore)',                                                    mode = { 'n', 'x' },                                  desc = 'Put yanked text before selection' },
+      { '[y',        '<Plug>(YankyCycleForward)',                                                  desc = 'Cycle forward through yank history' },
+      { ']y',        '<Plug>(YankyCycleBackward)',                                                 desc = 'Cycle backward through yank history' },
+      { ']p',        '<Plug>(YankyPutIndentAfterLinewise)',                                        desc = 'Put yanked indented after cursor (linewise)' },
+      { '[p',        '<Plug>(YankyPutIndentBeforeLinewise)',                                       desc = 'Put yanked indented before cursor (linewise)' },
+      { ']P',        '<Plug>(YankyPutIndentAfterLinewise)',                                        desc = 'Put yanked indented after cursor (linewise)' },
+      { '[P',        '<Plug>(YankyPutIndentBeforeLinewise)',                                       desc = 'Put yanked indented before cursor (linewise)' },
+      { '>p',        '<Plug>(YankyPutIndentAfterShiftRight)',                                      desc = 'Put yanked and indent right' },
+      { '<p',        '<Plug>(YankyPutIndentAfterShiftLeft)',                                       desc = 'Put yanked and indent left' },
+      { '>P',        '<Plug>(YankyPutIndentBeforeShiftRight)',                                     desc = 'Put yanked before and indent right' },
+      { '<P',        '<Plug>(YankyPutIndentBeforeShiftLeft)',                                      desc = 'Put yanked before and indent left' },
+      { '=p',        '<Plug>(YankyPutAfterFilter)',                                                desc = 'Put yanked after applying a filter' },
+      { '=P',        '<Plug>(YankyPutBeforeFilter)',                                               desc = 'Put yanked before applying a filter' },
+      -- stylua: ignore end
     },
   },
-}
+  -- Indent guides for Neovim
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    opts = {
+      indent = {
+        char = '│',
+        tab_char = '│',
+      },
+      scope = { enabled = false },
+      exclude = {
+        filetypes = {
+          'help',
+          'alpha',
+          'dashboard',
+          'neo-tree',
+          'Trouble',
+          'trouble',
+          'lazy',
+          'mason',
+          'notify',
+          'toggleterm',
+          'lazyterm',
+        },
+      },
+    },
+    main = 'ibl',
+    init = function() end,
+  },
 
+  -- A blazing fast and easy to configure neovim statusline plugin written in pure lua.
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+  },
+
+  {
+    'nvimdev/dashboard-nvim',
+    event = 'VimEnter',
+    opts = function()
+      local opts = {
+        theme = 'doom',
+        hide = {
+          -- this is taken care of by lualine
+          -- enabling this messes up the actual laststatus setting after loading a file
+          statusline = false,
+        },
+        config = {
+          header = { 'Hi' },
+          -- stylua: ignore
+          center = {
+            -- { action = Util.telescope("files"),                                    desc = " Find file",       icon = " ", key = "f" },
+            { action = "ene | startinsert", desc = " New file", icon = " ", key = "n" },
+            { action = "Telescope oldfiles", desc = " Recent files", icon = " ", key = "r" },
+            { action = "Telescope live_grep", desc = " Find text", icon = " ", key = "g" },
+            -- { action = [[lua require("lazyvim.util").telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
+            -- { action = 'lua require("persistence").load()',                        desc = " Restore Session", icon = " ", key = "s" },
+            { action = "e ~/.config/nvim/init.lua", desc = " Open Neovim config", icon = " ", key = "c" },
+            { action = "Lazy", desc = " Lazy", icon = "󰒲 ", key = "l" },
+            { action = "qa", desc = " Quit", icon = " ", key = "q" },
+          },
+          footer = function()
+            local stats = require('lazy').stats()
+            local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
+            return { '⚡ Neovim loaded ' .. stats.loaded .. '/' .. stats.count .. ' plugins in ' .. ms .. 'ms' }
+          end,
+        },
+      }
+
+      for _, button in ipairs(opts.config.center) do
+        button.desc = button.desc .. string.rep(' ', 43 - #button.desc)
+        button.key_format = '  %s'
+      end
+
+      -- close Lazy and re-open when the dashboard is ready
+      if vim.o.filetype == 'lazy' then
+        vim.cmd.close()
+        vim.api.nvim_create_autocmd('User', {
+          pattern = 'DashboardLoaded',
+          callback = function()
+            require('lazy').show()
+          end,
+        })
+      end
+
+      return opts
+    end,
+  },
+  --
+  {
+    'mfussenegger/nvim-dap',
+
+    dependencies = {
+
+      -- fancy UI for the debugger
+      {
+        'rcarriga/nvim-dap-ui',
+        -- stylua: ignore
+        keys = {
+          { "<leader>du", function() require("dapui").toggle({}) end, desc = "Dap UI" },
+          { "<leader>de", function() require("dapui").eval() end,     desc = "Eval",  mode = { "n", "v" } },
+        },
+        opts = {},
+        config = function(_, opts)
+          -- setup dap config by VsCode launch.json file
+          -- require("dap.ext.vscode").load_launchjs()
+          local dap = require 'dap'
+          local dapui = require 'dapui'
+          dapui.setup(opts)
+          dap.listeners.after.event_initialized['dapui_config'] = function()
+            dapui.open {}
+          end
+          dap.listeners.before.event_terminated['dapui_config'] = function()
+            dapui.close {}
+          end
+          dap.listeners.before.event_exited['dapui_config'] = function()
+            dapui.close {}
+          end
+        end,
+      },
+
+      -- virtual text for the debugger
+      {
+        'theHamsta/nvim-dap-virtual-text',
+        opts = {},
+      },
+
+      -- A library for asynchronous IO in Neovim
+      { 'nvim-neotest/nvim-nio' },
+
+      -- which key integration
+      {
+        'folke/which-key.nvim',
+        optional = true,
+        opts = {
+          defaults = {
+            ['<leader>d'] = { name = '+debug' },
+          },
+        },
+      },
+
+      -- mason.nvim integration
+      {
+        'jay-babu/mason-nvim-dap.nvim',
+        dependencies = 'mason.nvim',
+        cmd = { 'DapInstall', 'DapUninstall' },
+        opts = {
+          -- Makes a best effort to setup the various debuggers with
+          -- reasonable debug configurations
+          automatic_installation = true,
+
+          -- You can provide additional configuration to the handlers,
+          -- see mason-nvim-dap README for more information
+          handlers = {},
+
+          -- You'll need to check that you have the required things installed
+          -- online, please don't ask me how to install them :)
+          ensure_installed = {
+            -- Update this to ensure that you have the debuggers for the langs you want
+          },
+        },
+      },
+
+      -- Install the vscode-js-debug adapter
+      {
+        'microsoft/vscode-js-debug',
+        -- After install, build it and rename the dist directory to out
+        build = 'npm install --legacy-peer-deps --no-save && npx gulp vsDebugServerBundle && rm -rf out && mv dist out',
+        version = '1.*',
+      },
+      {
+        'mxsdev/nvim-dap-vscode-js',
+        config = function()
+          ---@diagnostic disable-next-line: missing-fields
+          require('dap-vscode-js').setup {
+            -- Path of node executable. Defaults to $NODE_PATH, and then "node"
+            -- node_path = "node",
+
+            -- Path to vscode-js-debug installation.
+            debugger_path = vim.fn.resolve(vim.fn.stdpath 'data' .. '/lazy/vscode-js-debug'),
+
+            -- Command to use to launch the debug server. Takes precedence over "node_path" and "debugger_path"
+            -- debugger_cmd = { "js-debug-adapter" },
+
+            -- which adapters to register in nvim-dap
+            adapters = {
+              'chrome',
+              'pwa-node',
+              'pwa-chrome',
+              'pwa-msedge',
+              'pwa-extensionHost',
+              'node-terminal',
+            },
+
+            -- Path for file logging
+            -- log_file_path = "(stdpath cache)/dap_vscode_js.log",
+
+            -- Logging level for output to file. Set to false to disable logging.
+            -- log_file_level = false,
+
+            -- Logging level for output to console. Set to false to disable console output.
+            -- log_console_level = vim.log.levels.ERROR,
+          }
+        end,
+      },
+      config = function()
+        local dap = require 'dap'
+
+        JS_BASED_LANGUAGES = {
+          'typescript',
+          'javascript',
+          'typescriptreact',
+          'javascriptreact',
+          'vue',
+        }
+
+        for _, language in ipairs(JS_BASED_LANGUAGES) do
+          dap.configurations[language] = {
+            -- Debug single nodejs files
+            {
+              type = 'pwa-node',
+              request = 'launch',
+              name = 'Launch file',
+              program = '${file}',
+              cwd = vim.fn.getcwd(),
+              sourceMaps = true,
+            },
+            -- Debug nodejs processes (make sure to add --inspect when you run the process)
+            {
+              type = 'pwa-node',
+              request = 'attach',
+              name = 'Attach',
+              processId = require('dap.utils').pick_process,
+              cwd = vim.fn.getcwd(),
+              sourceMaps = true,
+            },
+            -- Debug web applications (client side)
+            {
+              type = 'pwa-chrome',
+              request = 'launch',
+              name = 'Launch & Debug Chrome',
+              url = function()
+                local co = coroutine.running()
+                return coroutine.create(function()
+                  vim.ui.input({
+                    prompt = 'Enter URL: ',
+                    default = 'http://localhost:3000',
+                  }, function(url)
+                    if url == nil or url == '' then
+                      return
+                    else
+                      coroutine.resume(co, url)
+                    end
+                  end)
+                end)
+              end,
+              webRoot = vim.fn.getcwd(),
+              protocol = 'inspector',
+              sourceMaps = true,
+              userDataDir = false,
+            },
+            -- Divider for the launch.json derived configs
+            {
+              name = '----- ↓ launch.json configs ↓ -----',
+              type = '',
+              request = 'launch',
+            },
+          }
+        end
+      end,
+    },
+    -- stylua: ignore start
+    keys = {
+      { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
+      { "<leader>db", function() require("dap").toggle_breakpoint() end,                                    desc = "Toggle Breakpoint" },
+      { "<leader>dc", function() require("dap").continue() end,                                             desc = "Continue" },
+      {
+        "<leader>da",
+        function()
+          if vim.fn.filereadable(".vscode/launch.json") then
+            local dap_vscode = require("dap.ext.vscode")
+            dap_vscode.load_launchjs(nil, {
+              ["pwa-node"] = JS_BASED_LANGUAGES,
+              ["chrome"] = JS_BASED_LANGUAGES,
+              ["pwa-chrome"] = JS_BASED_LANGUAGES,
+            })
+          end
+          require("dap").continue()
+        end,
+        desc = "Run with Args",
+      },
+      { "<leader>dC", function() require("dap").run_to_cursor() end,    desc = "Run to Cursor" },
+      { "<leader>dg", function() require("dap").goto_() end,            desc = "Go to line (no execute)" },
+      { "<leader>di", function() require("dap").step_into() end,        desc = "Step Into" },
+      { "<leader>dj", function() require("dap").down() end,             desc = "Down" },
+      { "<leader>dk", function() require("dap").up() end,               desc = "Up" },
+      { "<leader>dl", function() require("dap").run_last() end,         desc = "Run Last" },
+      { "<leader>do", function() require("dap").step_out() end,         desc = "Step Out" },
+      { "<leader>dO", function() require("dap").step_over() end,        desc = "Step Over" },
+      { "<leader>dp", function() require("dap").pause() end,            desc = "Pause" },
+      { "<leader>dr", function() require("dap").repl.toggle() end,      desc = "Toggle REPL" },
+      { "<leader>ds", function() require("dap").session() end,          desc = "Session" },
+      { "<leader>dt", function() require("dap").terminate() end,        desc = "Terminate" },
+      { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
+    },
+    -- stylua: ignore end
+  },
+}
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
