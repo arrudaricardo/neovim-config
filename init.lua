@@ -63,10 +63,6 @@ vim.keymap.set({ 'i', 'x', 'n', 's' }, '<C-s>', '<cmd>w<cr><esc>', { desc = 'Sav
 vim.keymap.set('v', '<', '<gv')
 vim.keymap.set('v', '>', '>gv')
 
--- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
--- vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 --  Use CTRL+<hjkl> to switch between windows
@@ -110,6 +106,7 @@ vim.diagnostic.config {
   float = {
     border = 'rounded',
   },
+  virtual_text = false,
 }
 
 --
@@ -117,35 +114,49 @@ require('lazy').setup {
   -- TODO: DO I NEED THIS?
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
 
-  -- "gc" to comment visual regions/lines
   {
-    'numToStr/Comment.nvim',
-    opts = {},
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    ---@type Flash.Config
+    opts = {
+      modes = {
+        search = {
+          enabled = true,
+        },
+      },
+    },
+  -- stylua: ignore
+  keys = {
+    { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+    { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+    { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+    { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+  },
   },
 
   -- better diagnostics list and others
   {
     'folke/trouble.nvim',
     cmd = { 'TroubleToggle', 'Trouble' },
+    branch = 'dev',
     opts = { use_diagnostic_signs = true },
     keys = {
-      -- stylua: ignore start
-      { ']t',         function() require('todo-comments').jump_next() end, desc = 'Next todo comment', },
-      { '[t',         function() require('todo-comments').jump_prev() end, desc = 'Previous todo comment', },
-      -- stylua: ignore end
-      { '<leader>xt', '<cmd>TodoTrouble<cr>', desc = 'Todo (Trouble)' },
-      { '<leader>xT', '<cmd>TodoTrouble keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme (Trouble)' },
-      { '<leader>st', '<cmd>TodoTelescope<cr>', desc = 'Todo' },
-      { '<leader>sT', '<cmd>TodoTelescope keywords=TODO,FIX,FIXME<cr>', desc = 'Todo/Fix/Fixme' },
-      { '<leader>xx', '<cmd>TroubleToggle document_diagnostics<cr>', desc = 'Document Diagnostics (Trouble)' },
-      { '<leader>xX', '<cmd>TroubleToggle workspace_diagnostics<cr>', desc = 'Workspace Diagnostics (Trouble)' },
-      { '<leader>xL', '<cmd>TroubleToggle loclist<cr>', desc = 'Location List (Trouble)' },
-      { '<leader>xQ', '<cmd>TroubleToggle quickfix<cr>', desc = 'Quickfix List (Trouble)' },
+      { '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Diagnostics (Trouble)' },
+      { '<leader>xX', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', desc = 'Buffer Diagnostics (Trouble)' },
+      { '<leader>cs', '<cmd>Trouble symbols toggle focus=false<cr>', desc = 'Symbols (Trouble)' },
+      {
+        '<leader>cS',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP references/definitions/... (Trouble)',
+      },
+      { '<leader>xL', '<cmd>Trouble loclist toggle<cr>', desc = 'Location List (Trouble)' },
+      { '<leader>xQ', '<cmd>Trouble qflist toggle<cr>', desc = 'Quickfix List (Trouble)' },
       {
         '[q',
         function()
           if require('trouble').is_open() then
-            require('trouble').previous { skip_groups = true, jump = true }
+            require('trouble').prev { skip_groups = true, jump = true }
           else
             local ok, err = pcall(vim.cmd.cprev)
             if not ok then
@@ -153,21 +164,7 @@ require('lazy').setup {
             end
           end
         end,
-        desc = 'Previous trouble/quickfix item',
-      },
-      {
-        ']q',
-        function()
-          if require('trouble').is_open() then
-            require('trouble').next { skip_groups = true, jump = true }
-          else
-            local ok, err = pcall(vim.cmd.cnext)
-            if not ok then
-              vim.notify(err, vim.log.levels.ERROR)
-            end
-          end
-        end,
-        desc = 'Next trouble/quickfix item',
+        desc = 'Previous Trouble/Quickfix Item',
       },
     },
   },
@@ -189,20 +186,16 @@ require('lazy').setup {
     end,
   },
 
-  -- Useful plugin to show you pending keybinds.
   {
     'folke/which-key.nvim',
-    event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    config = function() -- This is the function that runs, AFTER loading
+    event = 'VimEnter',
+    config = function()
       require('which-key').setup()
 
-      -- Document existing key chains
       require('which-key').register {
-        ['<leader>c'] = { name = 'Code', _ = 'which_key_ignore' },
-        ['<leader>l'] = { name = 'Lsp', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = 'Document', _ = 'which_key_ignore' },
+        ['<leader>l'] = { name = 'LSP', _ = 'which_key_ignore' },
+        ['<leader>d'] = { name = 'Debug', _ = 'which_key_ignore' },
         ['<leader>f'] = { name = 'Find', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = 'Workspace', _ = 'which_key_ignore' },
         ['<leader>o'] = { name = 'Overseer', _ = 'which_key_ignore' },
         ['<leader>b'] = { name = 'Buffer', _ = 'which_key_ignore' },
         ['<leader>g'] = { name = 'Git', _ = 'which_key_ignore' },
@@ -210,7 +203,6 @@ require('lazy').setup {
     end,
   },
 
-  -- Fuzzy Finder (files, lsp, etc)
   {
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -294,11 +286,11 @@ require('lazy').setup {
       vim.keymap.set('n', '<leader>fc', builtin.colorscheme, { desc = 'Find Colorscheme' })
       vim.keymap.set('n', '<leader>fq', builtin.quickfix, { desc = 'Find quickfix' })
       vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = 'Find Keymaps' })
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' }) 
+      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' })
       vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = 'Find builtin ' })
       vim.keymap.set('n', '<leader>fg', builtin.git_files, { desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' })
-      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' }) 
-      vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' }) 
+      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' })
+      vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' })
       vim.keymap.set('n', '<leader>ft', t.extensions.live_grep_args.live_grep_args, { desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' })
       vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
       vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
@@ -344,6 +336,9 @@ require('lazy').setup {
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
     },
+    opts = {
+      inlay_hints = { enabled = true },
+    },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
@@ -381,11 +376,11 @@ require('lazy').setup {
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap
-          map('K', vim.lsp.buf.hover, 'Hover Documentation')
+          -- map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          map('gD', vim.lsp.buf.declaration, 'Goto Declaration')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
@@ -574,25 +569,16 @@ require('lazy').setup {
           return 'make install_jsregexp'
         end)(),
       },
-      'saadparwaiz1/cmp_luasnip',
-
-      -- Adds other completion capabilities.
-      --  nvim-cmp does not ship with all sources by default. They are split
-      --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
+      'saadparwaiz1/cmp_luasnip',
       'hrsh7th/cmp-path',
       'hrsh7th/cmp-cmdline',
-
-      -- If you want to add a bunch of pre-configured snippets,
-      --    you can use this plugin to help you. It even has snippets
-      --    for various frameworks/libraries/etc. but you will have to
-      --    set up the ones that are useful for you.
-      -- 'rafamadriz/friendly-snippets',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+      local compare = require 'cmp.config.compare'
       local copilot_suggestion = require 'copilot.suggestion'
       luasnip.config.setup {}
 
@@ -609,12 +595,8 @@ require('lazy').setup {
           documentation = cmp.config.window.bordered(),
         },
 
-        -- For an understanding of why these mappings were
-        -- chosen, you will need to read `:help ins-completion`
-        --
-        -- No, but seriously. Please read `:help ins-completion`, it is really good!
+        -- :help ins-completion
         mapping = cmp.mapping.preset.insert {
-
           ['<Tab>'] = cmp.mapping(function(fallback)
             if cmp.visible() and not copilot_suggestion.is_visible() then
               cmp.confirm { select = true }
@@ -622,43 +604,48 @@ require('lazy').setup {
               fallback()
             end
           end, { 'i', 's' }),
-
-          -- Select the [n]ext item
-          ['<C-n>'] = cmp.mapping.select_next_item(),
-          -- Select the [p]revious item
-          ['<C-p>'] = cmp.mapping.select_prev_item(),
-
+          ['<C-n>'] = cmp.mapping.select_next_item { behavior = cmp.SelectBehavior.Insert },
+          ['<C-p>'] = cmp.mapping.select_prev_item { behavior = cmp.SelectBehavior.Insert },
+          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-f>'] = cmp.mapping.scroll_docs(4),
           ['<C-y>'] = cmp.mapping.confirm { select = true },
           ['<CR>'] = cmp.mapping.confirm { select = true },
-
-          -- Manually trigger a completion from nvim-cmp.
-          --  Generally you don't need this, because nvim-cmp will display
-          --  completions whenever it has completion options available.
           ['<C-Space>'] = cmp.mapping.complete {},
-
-          -- Think of <c-l> as moving to the right of your snippet expansion.
-          --  So if you have a snippet that's like:
-          --  function $name($args)
-          --    $body
-          --  end
-          --
-          -- <c-l> will move you to the right of each of the expansion locations.
-          -- <c-h> is similar, except moving you backwards.
           ['<C-l>'] = cmp.mapping(function()
             if luasnip.expand_or_locally_jumpable() then
               luasnip.expand_or_jump()
             end
           end, { 'i', 's' }),
+
           ['<C-h>'] = cmp.mapping(function()
             if luasnip.locally_jumpable(-1) then
               luasnip.jump(-1)
             end
           end, { 'i', 's' }),
         },
-        sources = {
-          { name = 'nvim_lsp' },
+        sources = cmp.config.sources {
+          { name = 'nvim_lsp', priority = 10 },
           { name = 'luasnip' },
+          { name = 'buffer', keyword_length = 5, max_item_count = 5 },
           { name = 'path' },
+        },
+        experimental = {
+          ghost_text = {
+            hl_group = 'CmpGhostText',
+          },
+        },
+        sorting = {
+          comparators = {
+            compare.recently_used,
+            compare.offset,
+            compare.exact,
+            compare.score,
+            compare.locality,
+            compare.kind,
+            compare.sort_text,
+            compare.length,
+            compare.order,
+          },
         },
       }
     end,
@@ -669,8 +656,11 @@ require('lazy').setup {
     lazy = false,
     priority = 1000,
     config = function()
+      local dracula = require 'dracula'
+      dracula.setup {
+        italic_comment = true,
+      }
       vim.cmd [[colorscheme dracula]]
-      -- vim.cmd.hi 'Comment gui=none'
     end,
   },
 
@@ -735,6 +725,56 @@ require('lazy').setup {
       vim.keymap.set('n', '<leader>oi', '<cmd>OverseerInfo<cr>', { silent = true, desc = 'Info' })
       vim.keymap.set('n', '<leader>oa', '<cmd>OverseerQuickAction<cr>', { silent = true, desc = 'Action' })
     end,
+  },
+
+  {
+    'ThePrimeagen/harpoon',
+    branch = 'harpoon2',
+    opts = {
+      menu = {
+        width = vim.api.nvim_win_get_width(0) - 4,
+      },
+      settings = {
+        save_on_toggle = true,
+      },
+    },
+    keys = function()
+      local keys = {
+        {
+          '<leader>k',
+          function()
+            require('harpoon'):list():add()
+          end,
+          desc = 'Harpoon Add File',
+        },
+        {
+          '<leader>h',
+          function()
+            local harpoon = require 'harpoon'
+            harpoon.ui:toggle_quick_menu(harpoon:list())
+          end,
+          desc = 'Harpoon Quick Menu',
+        },
+      }
+
+      for i = 1, 5 do
+        table.insert(keys, {
+          '<leader>' .. i,
+          function()
+            require('harpoon'):list():select(i)
+          end,
+          desc = 'Harpoon to File ' .. i,
+        })
+      end
+      return keys
+    end,
+  },
+
+  -- lsp symbol navigation for lualine
+  {
+    'SmiteshP/nvim-navic',
+    lazy = true,
+    config = true,
   },
 
   -- Autopairs
@@ -972,18 +1012,18 @@ require('lazy').setup {
   -- A snazzy bufferline for Neovim
   -- TODO: add keymaps
   {
-    'akinsho/bufferline.nvim',
-    version = '*',
-    dependencies = 'nvim-tree/nvim-web-devicons',
-    config = function()
-      require('bufferline').setup {}
-      vim.keymap.set('n', 'H', '<cmd>BufferLineCyclePrev<CR>', { desc = 'Cycle Previous Buffer' })
-      vim.keymap.set('n', 'L', '<cmd>BufferLineCycleNext<CR>', { desc = 'Cycle Next Buffer' })
-      vim.keymap.set('n', '<leader>bp', '<cmd>BufferLinePick<CR>', { desc = '[B]uffer [P]ick' })
-      vim.keymap.set('n', '<leader>bo', '<cmd>BufferLineCloseOthers<CR>', { desc = '[B]uffer Close [O]thers' })
-      vim.keymap.set('n', '<leader>bp', '<cmd>BufferLineTogglePin<CR>', { desc = '[B]uffer Toggle [P]in' })
-      vim.keymap.set('n', '<leader>bP', '<cmd>BufferLineCloseOthers<CR>', { desc = '[B]uffer Delete non-[P]inned' })
-    end,
+    -- 'akinsho/bufferline.nvim',
+    -- version = '*',
+    -- dependencies = 'nvim-tree/nvim-web-devicons',
+    -- config = function()
+    --   require('bufferline').setup {}
+    --   vim.keymap.set('n', 'H', '<cmd>BufferLineCyclePrev<CR>', { desc = 'Cycle Previous Buffer' })
+    --   vim.keymap.set('n', 'L', '<cmd>BufferLineCycleNext<CR>', { desc = 'Cycle Next Buffer' })
+    --   vim.keymap.set('n', '<leader>bp', '<cmd>BufferLinePick<CR>', { desc = '[B]uffer [P]ick' })
+    --   vim.keymap.set('n', '<leader>bo', '<cmd>BufferLineCloseOthers<CR>', { desc = '[B]uffer Close [O]thers' })
+    --   vim.keymap.set('n', '<leader>bp', '<cmd>BufferLineTogglePin<CR>', { desc = '[B]uffer Toggle [P]in' })
+    --   vim.keymap.set('n', '<leader>bP', '<cmd>BufferLineCloseOthers<CR>', { desc = '[B]uffer Delete non-[P]inned' })
+    -- end,
   },
   -- Neovim plugin for a code outline window
   -- TODO: Add keymap
@@ -1000,8 +1040,9 @@ require('lazy').setup {
   -- tokyonight
   {
     'folke/tokyonight.nvim',
-    -- lazy = true,
-    opts = { style = 'moon' },
+    lazy = false,
+    priority = 1000,
+    opts = {},
   },
 
   -- catppuccin
@@ -1217,17 +1258,6 @@ require('lazy').setup {
 
       -- A library for asynchronous IO in Neovim
       { 'nvim-neotest/nvim-nio' },
-
-      -- which key integration
-      {
-        'folke/which-key.nvim',
-        optional = true,
-        opts = {
-          defaults = {
-            ['<leader>d'] = { name = '+debug' },
-          },
-        },
-      },
 
       -- mason.nvim integration
       {
