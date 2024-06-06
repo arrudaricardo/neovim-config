@@ -2,7 +2,13 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- [[ Setting options ]]
+--
 vim.opt.termguicolors = true -- True color support
+
+-- disable netrw
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, for help with jumping.
@@ -139,7 +145,6 @@ require('lazy').setup {
   {
     'folke/trouble.nvim',
     cmd = { 'TroubleToggle', 'Trouble' },
-    branch = 'dev',
     opts = { use_diagnostic_signs = true },
     keys = {
       { '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Diagnostics (Trouble)' },
@@ -767,6 +772,15 @@ require('lazy').setup {
   },
 
   {
+    'nvim-telescope/telescope-file-browser.nvim',
+    enabled = false,
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
+    keys = {
+      { '<leader>e', ':Telescope file_browser path=%:p:h select_buffer=true<CR>', desc = 'Toggle Telescope file broswer', mode = { 'n' } },
+    },
+  },
+
+  {
     'nvim-neo-tree/neo-tree.nvim',
     branch = 'v3.x',
     dependencies = {
@@ -796,7 +810,25 @@ require('lazy').setup {
       },
     },
     config = function()
-      require('neo-tree').setup {}
+      require('neo-tree').setup {
+        buffers = {
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
+          },
+        },
+        filesystem = {
+          hijack_netrw_behavior = 'open_current',
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false,
+          },
+          filtered_items = {
+            hide_dotfiles = false,
+            hide_gitignore = false,
+          },
+        },
+      }
     end,
     lazy = false,
     keys = {
@@ -1017,6 +1049,7 @@ require('lazy').setup {
   -- catppuccin
   {
     'catppuccin/nvim',
+    disable = true,
     -- lazy = true,
     name = 'catppuccin',
     opts = {
@@ -1132,6 +1165,7 @@ require('lazy').setup {
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = true,
   },
 
   {
@@ -1395,5 +1429,3 @@ require('lazy').setup {
     -- stylua: ignore end
   },
 }
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
