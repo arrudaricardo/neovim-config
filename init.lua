@@ -1486,4 +1486,9 @@ require('lazy').setup {
       require('colorizer').setup()
     end,
   },
+  {
+    'felpafel/inlay-hint.nvim',
+    event = 'LspAttach',
+    config = true,
+  },
 }
