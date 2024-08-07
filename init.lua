@@ -83,16 +83,17 @@ vim.keymap.set('n', '<space>lf', '<cmd>lua vim.lsp.buf.format{async = true}<CR>'
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
+-- TODO: DO I NEED THIS since gbprod/yanky.nvim ?
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.highlight.on_yank()
-  end,
-})
+-- vim.api.nvim_create_autocmd('TextYankPost', {
+--   desc = 'Highlight when yanking (copying) text',
+--   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+--   callback = function()
+--     vim.highlight.on_yank()
+--   end,
+-- })
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -207,96 +208,120 @@ require('lazy').setup {
       }
     end,
   },
-
   {
-    'nvim-telescope/telescope.nvim',
-    event = 'VimEnter',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
-      { 'nvim-telescope/telescope-ui-select.nvim' },
-
-      { 'nvim-tree/nvim-web-devicons' },
-      {
-        'nvim-telescope/telescope-live-grep-args.nvim',
-        version = '^1.0.0',
-      },
-    },
+    'ibhagwan/fzf-lua',
+    -- optional for icon support
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      require('telescope').setup {
-        defaults = {
-          wrap_results = true,
-          sorting_strategy = 'ascending',
-          path_display = { 'truncate' },
-        },
-        pickers = {
-          oldfiles = {
-            initial_mode = 'normal',
-          },
-        },
-        extensions = {
-          ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
-          },
-        },
-      }
-
-      -- Enable telescope extensions, if they are installed
-      pcall(require('telescope').load_extension, 'fzf')
-      pcall(require('telescope').load_extension, 'ui-select')
-
-      -- See `:help telescope.builtin`
-      local builtin = require 'telescope.builtin'
-      local t = require 'telescope'
-      -- stylua: ignore start
-      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = 'Find Help' })
-      vim.keymap.set('n', '<leader>fb', builtin.current_buffer_fuzzy_find, { desc = 'Current Buffer Fuzzy Find' })
-      vim.keymap.set('n', '<leader>fc', builtin.colorscheme, { desc = 'Find Colorscheme' })
-      vim.keymap.set('n', '<leader>fq', builtin.quickfix, { desc = 'Find quickfix' })
-      vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = 'Find Keymaps' })
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' })
-      vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = 'Find builtin ' })
-      vim.keymap.set('n', '<leader>fg', builtin.git_files, { desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' })
-      vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' })
-      vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' })
-      vim.keymap.set('n', '<leader>ft', t.extensions.live_grep_args.live_grep_args, { desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' })
-      vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
-      vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
-      vim.keymap.set('n', '<leader>fm', builtin.marks, { desc = 'Lists vim marks and their value' })
-      vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = 'Find Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = 'Find existing buffers' })
-      -- stylua: ignore end
-
-      -- Slightly advanced example of overriding default behavior and theme
-      vim.keymap.set('n', '<leader>/', function()
-        -- You can pass additional configuration to telescope to change theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
-      end, { desc = '[/] Fuzzily search in current buffer' })
-
-      -- Also possible to pass additional configuration options.
-      --  See `:help telescope.builtin.live_grep()` for information about particular keys
-      vim.keymap.set('n', '<leader>s/', function()
-        builtin.live_grep {
-          grep_open_files = true,
-          prompt_title = 'Live Grep in Open Files',
-        }
-      end, { desc = '[S]earch [/] in Open Files' })
-
-      -- Shortcut for searching your neovim configuration files
-      vim.keymap.set('n', '<leader>sn', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[S]earch [N]eovim files' })
+      -- calling `setup` is optional for customization
+      require('fzf-lua').setup {}
     end,
+
+     -- stylua: ignore start
+    keys = {
+      { '<leader>ff', mode = { 'n', 'x', 'o' }, function() require('fzf-lua').files {} end, desc = 'Fzf Files' },
+      { 'gd', mode = { 'n' }, function() require('fzf-lua').lsp_definitions {} end, desc = 'Goto Definition' },
+      { 'gr', mode = { 'n' }, function() require('fzf-lua').lsp_references {} end, desc = 'Goto References' },
+      { 'gI', mode = { 'n' }, function() require('fzf-lua').lsp_typedefs {} end, desc = 'Goto Type definition' },
+      { '<leader>fb', mode = { 'n' }, function() require('fzf-lua').buffers {} end, desc = 'Current Buffer Fuzzy Find' },
+      { '<leader>ft', mode = { 'n' }, function() require('fzf-lua').live_grep_glob {} end, desc = '' },
+      { '<leader>fg', mode = { 'n' }, function() require('fzf-lua').git_files {} end, desc = '' },
+
+  --     vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
+  --     vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
+    },
+    -- stylua: ignore end
   },
+
+  -- {
+  --   'nvim-telescope/telescope.nvim',
+  --   enabled = false,
+  --   event = 'VimEnter',
+  --   dependencies = {
+  --     'nvim-lua/plenary.nvim',
+  --     {
+  --       'nvim-telescope/telescope-fzf-native.nvim',
+  --       build = 'make',
+  --       cond = function()
+  --         return vim.fn.executable 'make' == 1
+  --       end,
+  --     },
+  --     { 'nvim-telescope/telescope-ui-select.nvim' },
+  --
+  --     { 'nvim-tree/nvim-web-devicons' },
+  --     {
+  --       'nvim-telescope/telescope-live-grep-args.nvim',
+  --       version = '^1.0.0',
+  --     },
+  --   },
+  --   config = function()
+  --     require('telescope').setup {
+  --       defaults = {
+  --         wrap_results = true,
+  --         sorting_strategy = 'ascending',
+  --         path_display = { 'truncate' },
+  --       },
+  --       pickers = {
+  --         oldfiles = {
+  --           initial_mode = 'normal',
+  --         },
+  --       },
+  --       extensions = {
+  --         ['ui-select'] = {
+  --           require('telescope.themes').get_dropdown(),
+  --         },
+  --       },
+  --     }
+  --
+  --     -- Enable telescope extensions, if they are installed
+  --     pcall(require('telescope').load_extension, 'fzf')
+  --     pcall(require('telescope').load_extension, 'ui-select')
+  --
+  --     -- See `:help telescope.builtin`
+  --     local builtin = require 'telescope.builtin'
+  --     local t = require 'telescope'
+  --     -- stylua: ignore start
+  --     vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = 'Find Help' })
+  --     vim.keymap.set('n', '<leader>fb', builtin.current_buffer_fuzzy_find, { desc = 'Current Buffer Fuzzy Find' })
+  --     vim.keymap.set('n', '<leader>fc', builtin.colorscheme, { desc = 'Find Colorscheme' })
+  --     vim.keymap.set('n', '<leader>fq', builtin.quickfix, { desc = 'Find quickfix' })
+  --     vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = 'Find Keymaps' })
+  --     vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' })
+  --     vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = 'Find builtin ' })
+  --     vim.keymap.set('n', '<leader>fg', builtin.git_files, { desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' })
+  --     vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' })
+  --     vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' })
+  --     vim.keymap.set('n', '<leader>ft', t.extensions.live_grep_args.live_grep_args, { desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' })
+  --     vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
+  --     vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
+  --     vim.keymap.set('n', '<leader>fm', builtin.marks, { desc = 'Lists vim marks and their value' })
+  --     vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = 'Find Recent Files ("." for repeat)' })
+  --     vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = 'Find existing buffers' })
+  --     -- stylua: ignore end
+  --
+  --     vim.keymap.set('n', '<leader>/', function()
+  --       -- You can pass additional configuration to telescope to change theme, layout, etc.
+  --       -- builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+  --       --   winblend = 10,
+  --       --   previewer = false,
+  --       -- })
+  --     end, { desc = '[/] Fuzzily search in current buffer' })
+  --
+  --     -- Also possible to pass additional configuration options.
+  --     --  See `:help telescope.builtin.live_grep()` for information about particular keys
+  --     vim.keymap.set('n', '<leader>s/', function()
+  --       builtin.live_grep {
+  --         grep_open_files = true,
+  --         prompt_title = 'Live Grep in Open Files',
+  --       }
+  --     end, { desc = '[S]earch [/] in Open Files' })
+  --
+  --     -- Shortcut for searching your neovim configuration files
+  --     vim.keymap.set('n', '<leader>sn', function()
+  --       builtin.find_files { cwd = vim.fn.stdpath 'config' }
+  --     end, { desc = '[S]earch [N]eovim files' })
+  --   end,
+  -- },
 
   { -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -331,55 +356,30 @@ require('lazy').setup {
             vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
-          -- Jump to the definition of the word under your cursor.
-          --  This is where a variable was first declared, or where a function is defined, etc.
-          --  To jump back, press <C-T>.
-          map('gd', require('telescope.builtin').lsp_definitions, 'Goto Definition')
+          -- map('gd', require('telescope.builtin').lsp_definitions, 'Goto Definition')
 
-          -- Find references for the word under your cursor.
-          map('gr', require('telescope.builtin').lsp_references, 'Goto References')
+          -- map('gr', require('telescope.builtin').lsp_references, 'Goto References')
 
-          -- Jump to the implementation of the word under your cursor.
-          --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gI', require('telescope.builtin').lsp_implementations, 'Goto Implementation')
+          -- map('gI', require('telescope.builtin').lsp_implementations, 'Goto Implementation')
 
-          -- Jump to the type of the word under your cursor.
-          --  Useful when you're not sure what type a variable is and you want to see
-          --  the definition of its *type*, not where it was *defined*.
-          map('gt', require('telescope.builtin').lsp_type_definitions, 'Goto Type definition')
+          -- map('gt', require('telescope.builtin').lsp_type_definitions, 'Goto Type definition')
 
-          -- Opens a popup that displays documentation about the word under your cursor
-          --  See `:help K` for why this keymap
-          -- map('K', vim.lsp.buf.hover, 'Hover Documentation')
-
-          -- WARN: This is not Goto Definition, this is Goto Declaration.
-          --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, 'Goto Declaration')
 
-          -- Fuzzy find all the symbols in your current document.
-          --  Symbols are things like variables, functions, types, etc.
-          map('<leader>fs', require('telescope.builtin').lsp_document_symbols, 'Lists LSP document symbols in the current buffer')
-
-          -- Fuzzy find all the symbols in your current workspace
-          --  Similar to document symbols, except searches over your whole project.
-          -- TODO: Move
+          -- map('<leader>fs', require('telescope.builtin').lsp_document_symbols, 'Lists LSP document symbols in the current buffer')
           -- map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
-          -- Rename the variable under your cursor
-          --  Most Language Servers support renaming across files, etc.
           map('<leader>lr', vim.lsp.buf.rename, 'LSP Rename')
 
-          -- Execute a code action, usually your cursor needs to be on top of an error
-          -- or a suggestion from your LSP for this to activate.
           map('<leader>la', vim.lsp.buf.code_action, 'LSP Action')
 
           -- Git
-          map(
-            '<leader>gc',
-            require('telescope.builtin').git_commits,
-            'Lists git commits with diff preview, checkout action <cr>, reset mixed <C-r>m, reset soft <C-r>s and reset hard <C-r>h'
-          )
-          map('<leader>gc', require('telescope.builtin').git_commits, 'Git commits')
+          -- map(
+          --   '<leader>gc',
+          --   require('telescope.builtin').git_commits,
+          --   'Lists git commits with diff preview, checkout action <cr>, reset mixed <C-r>m, reset soft <C-r>s and reset hard <C-r>h'
+          -- )
+          -- map('<leader>gc', require('telescope.builtin').git_commits, 'Git commits')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -401,6 +401,19 @@ require('lazy').setup {
         end,
 
         require('lspconfig').gleam.setup {},
+
+        require('lspconfig').rust_analyzer.setup {
+          settings = {
+            ['rust-analyzer'] = {
+              check = {
+                command = 'clippy',
+              },
+              diagnostics = {
+                enable = true,
+              },
+            },
+          },
+        },
       })
 
       -- LSP servers and clients are able to communicate to each other what features they support.
@@ -824,9 +837,9 @@ require('lazy').setup {
     'nvim-telescope/telescope-file-browser.nvim',
     enabled = false,
     dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
-    keys = {
-      { '<leader>e', ':Telescope file_browser path=%:p:h select_buffer=true<CR>', desc = 'Toggle Telescope file broswer', mode = { 'n' } },
-    },
+    -- keys = {
+    --   { '<leader>e', ':Telescope file_browser path=%:p:h select_buffer=true<CR>', desc = 'Toggle Telescope file broswer', mode = { 'n' } },
+    -- },
   },
 
   {
@@ -1133,7 +1146,7 @@ require('lazy').setup {
         noice = true,
         notify = true,
         semantic_tokens = true,
-        telescope = true,
+        -- telescope = true,
         treesitter = true,
         treesitter_context = true,
         which_key = true,
@@ -1235,9 +1248,9 @@ require('lazy').setup {
           center = {
             -- { action = Util.telescope("files"),                                    desc = " Find file",       icon = " ", key = "f" },
             { action = "ene | startinsert", desc = " New file", icon = " ", key = "n" },
-            { action = "Telescope oldfiles", desc = " Recent files", icon = " ", key = "r" },
-            { action = "Telescope live_grep", desc = " Find text", icon = " ", key = "g" },
-            -- { action = [[lua require("lazyvim.util").telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
+            -- { action = [[require('fzf-lua').oldfiles()]], desc = " Recent files", icon = " ", key = "r" },
+            -- { action = "[[require('fzf-lua').live_grep()]]", desc = " Find text", icon = " ", key = "g" },
+            { action = [[lua require("lazyvim.util").telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
             -- { action = 'lua require("persistence").load()',                        desc = " Restore Session", icon = " ", key = "s" },
             { action = "e ~/.config/nvim/init.lua", desc = " Open Neovim config", icon = " ", key = "c" },
             { action = "Lazy", desc = " Lazy", icon = "󰒲 ", key = "l" },
@@ -1462,7 +1475,7 @@ require('lazy').setup {
         end,
         desc = "Run with Args",
       },
-      { "<leader>dC", function() require("dap").run_to_cursor() end,    desc = "Run to Cursor" },
+      { "<leader>dC", function() require("dap").un_to_cursor() end,    desc = "Run to Cursor" },
       { "<leader>dg", function() require("dap").goto_() end,            desc = "Go to line (no execute)" },
       { "<leader>di", function() require("dap").step_into() end,        desc = "Step Into" },
       { "<leader>dj", function() require("dap").down() end,             desc = "Down" },
@@ -1478,6 +1491,84 @@ require('lazy').setup {
     },
     -- stylua: ignore end
     --
+  },
+  {
+    'robitx/gp.nvim',
+    config = function()
+      local conf = {
+        providers = {
+          openai = {
+            disable = true,
+            endpoint = 'https://api.openai.com/v1/chat/completions',
+            secret = os.getenv 'OPENAI_API_KEY',
+          },
+          copilot = {
+            disable = false,
+            endpoint = 'https://api.githubcopilot.com/chat/completions',
+            secret = {
+              'bash',
+              '-c',
+              "cat ~/.config/github-copilot/hosts.json | sed -e 's/.*oauth_token...//;s/\".*//'",
+            },
+          },
+        },
+        chat_shortcut_respond = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<CR>' },
+        chat_shortcut_delete = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>d' },
+        chat_shortcut_stop = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>s' },
+        chat_shortcut_new = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>c' },
+
+        chat_free_cursor = true,
+      }
+      require('gp').setup(conf)
+    end,
+
+    keys = {
+      -- Cursor keymapping
+
+      { '<D-l>', mode = { 'n', 'i' }, '<cmd>GpChatToggle<cr>', desc = 'GPT prompt Toggle Chat' },
+      { '<D-l>', mode = 'v', ":<C-u>'<,'>GpChatToggle<cr>", desc = 'GPT prompt Visual Toggle Chat' },
+
+      -- Chat commands
+      { '<C-g>c', mode = { 'n', 'i' }, '<cmd>GpChatNew<cr>', desc = 'GPT prompt New Chat' },
+      { '<C-g>t', mode = { 'n', 'i' }, '<cmd>GpChatToggle<cr>', desc = 'GPT prompt Toggle Chat' },
+      { '<C-g>f', mode = { 'n', 'i' }, '<cmd>GpChatFinder<cr>', desc = 'GPT prompt Chat Finder' },
+      { '<C-g>c', mode = 'v', ":<C-u>'<,'>GpChatNew<cr>", desc = 'GPT prompt Visual Chat New' },
+      { '<C-g>p', mode = 'v', ":<C-u>'<,'>GpChatPaste<cr>", desc = 'GPT prompt Visual Chat Paste' },
+      { '<C-g>t', mode = 'v', ":<C-u>'<,'>GpChatToggle<cr>", desc = 'GPT prompt Visual Toggle Chat' },
+      { '<C-g><C-x>', mode = { 'n', 'i' }, '<cmd>GpChatNew split<cr>', desc = 'GPT prompt New Chat split' },
+      { '<C-g><C-v>', mode = { 'n', 'i' }, '<cmd>GpChatNew vsplit<cr>', desc = 'GPT prompt New Chat vsplit' },
+      { '<C-g><C-t>', mode = { 'n', 'i' }, '<cmd>GpChatNew tabnew<cr>', desc = 'GPT prompt New Chat tabnew' },
+      { '<C-g><C-x>', mode = 'v', ":<C-u>'<,'>GpChatNew split<cr>", desc = 'GPT prompt Visual Chat New split' },
+      { '<C-g><C-v>', mode = 'v', ":<C-u>'<,'>GpChatNew vsplit<cr>", desc = 'GPT prompt Visual Chat New vsplit' },
+      { '<C-g><C-t>', mode = 'v', ":<C-u>'<,'>GpChatNew tabnew<cr>", desc = 'GPT prompt Visual Chat New tabnew' },
+
+      -- Prompt commands
+      { '<C-k>r', mode = { 'n', 'i' }, '<cmd>GpRewrite<cr>', desc = 'GPT prompt Inline Rewrite' },
+      { '<C-k>a', mode = { 'n', 'i' }, '<cmd>GpAppend<cr>', desc = 'GPT prompt Append (after)' },
+      { '<C-k>b', mode = { 'n', 'i' }, '<cmd>GpPrepend<cr>', desc = 'GPT prompt Prepend (before)' },
+      { '<C-k>r', mode = 'v', ":<C-u>'<,'>GpRewrite<cr>", desc = 'GPT prompt Visual Rewrite' },
+      { '<C-k>a', mode = 'v', ":<C-u>'<,'>GpAppend<cr>", desc = 'GPT prompt Visual Append (after)' },
+      { '<C-k>b', mode = 'v', ":<C-u>'<,'>GpPrepend<cr>", desc = 'GPT prompt Visual Prepend (before)' },
+      { '<C-k>i', mode = 'v', ":<C-u>'<,'>GpImplement<cr>", desc = 'GPT prompt Implement selection' },
+
+      { '<C-g>gp', mode = { 'n', 'i' }, '<cmd>GpPopup<cr>', desc = 'GPT prompt Popup' },
+      { '<C-g>ge', mode = { 'n', 'i' }, '<cmd>GpEnew<cr>', desc = 'GPT prompt GpEnew' },
+      { '<C-g>gn', mode = { 'n', 'i' }, '<cmd>GpNew<cr>', desc = 'GPT prompt GpNew' },
+      { '<C-g>gv', mode = { 'n', 'i' }, '<cmd>GpVnew<cr>', desc = 'GPT prompt GpVnew' },
+      { '<C-g>gt', mode = { 'n', 'i' }, '<cmd>GpTabnew<cr>', desc = 'GPT prompt GpTabnew' },
+      { '<C-g>gp', mode = 'v', ":<C-u>'<,'>GpPopup<cr>", desc = 'GPT prompt Visual Popup' },
+      { '<C-g>ge', mode = 'v', ":<C-u>'<,'>GpEnew<cr>", desc = 'GPT prompt Visual GpEnew' },
+      { '<C-g>gn', mode = 'v', ":<C-u>'<,'>GpNew<cr>", desc = 'GPT prompt Visual GpNew' },
+      { '<C-g>gv', mode = 'v', ":<C-u>'<,'>GpVnew<cr>", desc = 'GPT prompt Visual GpVnew' },
+      { '<C-g>gt', mode = 'v', ":<C-u>'<,'>GpTabnew<cr>", desc = 'GPT prompt Visual GpTabnew' },
+
+      { '<C-g>x', mode = { 'n', 'i' }, '<cmd>GpContext<cr>', desc = 'GPT prompt Toggle Context' },
+      { '<C-g>x', mode = 'v', ":<C-u>'<,'>GpContext<cr>", desc = 'GPT prompt Visual Toggle Context' },
+
+      -- General commands
+      { '<C-g>s', mode = { 'n', 'i', 'v', 'x' }, '<cmd>GpStop<cr>', desc = 'GPT prompt Stop' },
+      { '<C-g>n', mode = { 'n', 'i', 'v', 'x' }, '<cmd>GpNextAgent<cr>', desc = 'GPT prompt Next Agent' },
+    },
   },
 
   {
