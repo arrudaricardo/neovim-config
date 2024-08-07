@@ -187,16 +187,49 @@ require('lazy').setup {
         changedelete = { text = '~' },
       },
     },
-    init = function()
-      vim.keymap.set('n', '<leader>gs', '<cmd>Gitsigns<cr>', { noremap = true, silent = true, desc = 'Gitsigns' })
-    end,
+     -- stylua: ignore start
+    keys = {
+      { '<leader>hs', mode = { 'n' }, function() require('gitsigns').stage_hunk() end, desc = 'Stage Hunk' },
+      { '<leader>hs', mode = { 'v' }, function() require('gitsigns').stage_hunk{vim.fn.line('.'), vim.fn.line('v')} end, desc = 'Stage Hunk' },
+      { '<leader>hr', mode = { 'n' }, function() require('gitsigns').reset_hunk() end, desc = 'Reset Hunk' },
+      { '<leader>hr', mode = { 'v' }, function() require('gitsigns').reset_hunk{vim.fn.line('.'), vim.fn.line('v')} end, desc = 'Reset Hunk' },
+      { '<leader>hn', mode = { 'n' }, function() require('gitsigns').next_hunk() end, desc = 'Next Hunk' },
+      { '<leader>hp', mode = { 'n' }, function() require('gitsigns').prev_hink() end, desc = 'Prev  Hunk' },
+      { '<leader>hv', mode = { 'n' }, function() require('gitsigns').preview_hunk() end, desc = 'Preview Hunk' },
+      { '<leader>hS', mode = { 'n' }, function() require('gitsigns').stage_buffer() end, desc = 'Stage Buffer' },
+      { '<leader>hu', mode = { 'n' }, function() require('gitsigns').undo_stage_hunk() end, desc = 'Undo Stage Hunk' },
+      { '<leader>hR', mode = { 'n' }, function() require('gitsigns').reset_buffer() end, desc = 'Reset Buffer' },
+      { '<leader>hp', mode = { 'n' }, function() require('gitsigns').preview_hunk() end, desc = 'Preview Hunk' },
+      { '<leader>hb', mode = { 'n' }, function() require('gitsigns').blame_line{full=true} end, desc = 'Blame Line (Full)' },
+      { '<leader>tb', mode = { 'n' }, function() require('gitsigns').toggle_current_line_blame() end, desc = 'Toggle Current Line Blame' },
+      { '<leader>hd', mode = { 'n' }, function() require('gitsigns').diffthis() end, desc = 'Diff This' },
+      { '<leader>hD', mode = { 'n' }, function() require('gitsigns').diffthis('~') end, desc = 'Diff Against Previous Version' },
+      { '<leader>td', mode = { 'n' }, function() require('gitsigns').toggle_deleted() end, desc = 'Toggle Deleted' },
+    }
+    -- stylua: ignore end
+,
   },
 
   {
     'folke/which-key.nvim',
     event = 'VimEnter',
     config = function()
-      require('which-key').setup()
+      require('which-key').setup {
+        -- Insert any setup configurations here if relevant
+        plugins = {
+          marks = true, -- shows a list of your marks on ' and `
+          registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
+          spelling = { -- enabling this will show WhichKey when pressing z= to select spelling suggestions
+            enabled = true,
+            suggestions = 20, -- how many suggestions should be shown in the list?
+          },
+          -- ... other configurations as needed
+        },
+        layout = {
+          spacing = 6, -- spacing between columns
+          align = 'center', -- align columns left, center or right
+        },
+      }
 
       require('which-key').register {
         ['<leader>l'] = { name = 'LSP', _ = 'which_key_ignore' },
@@ -765,6 +798,7 @@ require('lazy').setup {
 
   {
     'ThePrimeagen/harpoon',
+    enabled = false,
     branch = 'harpoon2',
     opts = {
       menu = {
@@ -1169,12 +1203,16 @@ require('lazy').setup {
     'gbprod/yanky.nvim',
     dependencies = not jit.os:find 'Windows' and { 'kkharji/sqlite.lua' } or {},
     opts = {
-      highlight = { timer = 250 },
+      highlight = {
+        on_put = true,
+        on_yank = true,
+        timer = 250,
+      },
       ring = { storage = jit.os:find 'Windows' and 'shada' or 'sqlite' },
     },
     keys = {
       -- stylua: ignore start
-      { "<leader>p", function() require("telescope").extensions.yank_history.yank_history({}) end, desc = "Open Yank History" },
+      -- { "<leader>p", function() require("telescope").extensions.yank_history.yank_history({}) end, desc = "Open Yank History" },
       { 'y',         '<Plug>(YankyYank)',                                                          mode = { 'n', 'x' },                                  desc = 'Yank text' },
       { 'p',         '<Plug>(YankyPutAfter)',                                                      mode = { 'n', 'x' },                                  desc = 'Put yanked text after cursor' },
       { 'P',         '<Plug>(YankyPutBefore)',                                                     mode = { 'n', 'x' },                                  desc = 'Put yanked text before cursor' },
@@ -1515,7 +1553,7 @@ require('lazy').setup {
         chat_shortcut_respond = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<CR>' },
         chat_shortcut_delete = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>d' },
         chat_shortcut_stop = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>s' },
-        chat_shortcut_new = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>c' },
+        chat_shortcut_new = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-n>' },
 
         chat_free_cursor = true,
       }
@@ -1543,13 +1581,13 @@ require('lazy').setup {
       { '<C-g><C-t>', mode = 'v', ":<C-u>'<,'>GpChatNew tabnew<cr>", desc = 'GPT prompt Visual Chat New tabnew' },
 
       -- Prompt commands
-      { '<C-k>r', mode = { 'n', 'i' }, '<cmd>GpRewrite<cr>', desc = 'GPT prompt Inline Rewrite' },
-      { '<C-k>a', mode = { 'n', 'i' }, '<cmd>GpAppend<cr>', desc = 'GPT prompt Append (after)' },
-      { '<C-k>b', mode = { 'n', 'i' }, '<cmd>GpPrepend<cr>', desc = 'GPT prompt Prepend (before)' },
-      { '<C-k>r', mode = 'v', ":<C-u>'<,'>GpRewrite<cr>", desc = 'GPT prompt Visual Rewrite' },
-      { '<C-k>a', mode = 'v', ":<C-u>'<,'>GpAppend<cr>", desc = 'GPT prompt Visual Append (after)' },
-      { '<C-k>b', mode = 'v', ":<C-u>'<,'>GpPrepend<cr>", desc = 'GPT prompt Visual Prepend (before)' },
-      { '<C-k>i', mode = 'v', ":<C-u>'<,'>GpImplement<cr>", desc = 'GPT prompt Implement selection' },
+      { '<D-k>r', mode = { 'n', 'i' }, '<cmd>GpRewrite<cr>', desc = 'GPT prompt Inline Rewrite' },
+      { '<D-k>a', mode = { 'n', 'i' }, '<cmd>GpAppend<cr>', desc = 'GPT prompt Append (after)' },
+      { '<D-k>b', mode = { 'n', 'i' }, '<cmd>GpPrepend<cr>', desc = 'GPT prompt Prepend (before)' },
+      { '<D-k>r', mode = 'v', ":<C-u>'<,'>GpRewrite<cr>", desc = 'GPT prompt Visual Rewrite' },
+      { '<D-k>a', mode = 'v', ":<C-u>'<,'>GpAppend<cr>", desc = 'GPT prompt Visual Append (after)' },
+      { '<D-k>b', mode = 'v', ":<C-u>'<,'>GpPrepend<cr>", desc = 'GPT prompt Visual Prepend (before)' },
+      { '<D-k>i', mode = 'v', ":<C-u>'<,'>GpImplement<cr>", desc = 'GPT prompt Implement selection' },
 
       { '<C-g>gp', mode = { 'n', 'i' }, '<cmd>GpPopup<cr>', desc = 'GPT prompt Popup' },
       { '<C-g>ge', mode = { 'n', 'i' }, '<cmd>GpEnew<cr>', desc = 'GPT prompt GpEnew' },
