@@ -245,6 +245,7 @@ require('lazy').setup {
     'ibhagwan/fzf-lua',
     -- optional for icon support
     dependencies = { 'nvim-tree/nvim-web-devicons' },
+    enabled = false,
     config = function()
       -- calling `setup` is optional for customization
       require('fzf-lua').setup {}
@@ -252,13 +253,22 @@ require('lazy').setup {
 
      -- stylua: ignore start
     keys = {
-      { '<leader>ff', mode = { 'n', 'x', 'o' }, function() require('fzf-lua').files {} end, desc = 'Fzf Files' },
-      { 'gd', mode = { 'n' }, function() require('fzf-lua').lsp_definitions {} end, desc = 'Goto Definition' },
-      { 'gr', mode = { 'n' }, function() require('fzf-lua').lsp_references {} end, desc = 'Goto References' },
-      { 'gI', mode = { 'n' }, function() require('fzf-lua').lsp_typedefs {} end, desc = 'Goto Type definition' },
-      { '<leader>fb', mode = { 'n' }, function() require('fzf-lua').buffers {} end, desc = 'Current Buffer Fuzzy Find' },
-      { '<leader>ft', mode = { 'n' }, function() require('fzf-lua').live_grep_glob {} end, desc = '' },
-      { '<leader>fg', mode = { 'n' }, function() require('fzf-lua').git_files {} end, desc = '' },
+      -- Search
+      { '<leader>ff', mode = { 'n', 'x', 'o' }, function() require('fzf-lua').git_files {} end, desc = 'Fzf Git Files' },
+      { '<D-\\>', mode = { 'n', 'x', 'o' }, function() require('fzf-lua').git_files {} end, desc = 'Fzf Git Files' },
+      { '<leader>ft', mode = { 'n' }, function() require('fzf-lua').live_grep {} end, desc = 'Fzf Live Grep' },
+      { '<leader>fr', mode = { 'n' }, function() require('fzf-lua').resume {} end, desc = 'Fzf Resume' },
+      { '<leader>fw', mode = { 'n' }, function() require('fzf-lua').grep_cword {} end, desc = 'Fzf under cursor word' },
+      { '<leader>fw', mode = { 'v' }, function() require('fzf-lua').grep_visual {} end, desc = 'Fzf grep selected' },
+      { '<leader>fW', mode = { 'n' }, function() require('fzf-lua').grep_cWORD {} end, desc = 'Fzf under cursor WORD' },
+      { '<C-/>', mode = { 'n' }, function() require('fzf-lua').buffers {} end, desc = 'Fzf buffers' },
+
+      -- LSP 
+      -- { 'gd', mode = { 'n' }, function() require('fzf-lua').lsp_definitions {} end, desc = 'Goto Definition' },
+      -- { 'gr', mode = { 'n' }, function() require('fzf-lua').lsp_references {} end, desc = 'Goto References' },
+      { 'gI', mode = { 'n' }, function() require('fzf-lua').lsp_implementations {} {} end, desc = 'Goto Type definition' },
+      { 'gt', mode = { 'n' }, function() require('fzf-lua').lsp_typedefs {} end, desc = 'Goto Type definition' },
+
 
   --     vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
   --     vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
@@ -266,95 +276,76 @@ require('lazy').setup {
     -- stylua: ignore end
   },
 
-  -- {
-  --   'nvim-telescope/telescope.nvim',
-  --   enabled = false,
-  --   event = 'VimEnter',
-  --   dependencies = {
-  --     'nvim-lua/plenary.nvim',
-  --     {
-  --       'nvim-telescope/telescope-fzf-native.nvim',
-  --       build = 'make',
-  --       cond = function()
-  --         return vim.fn.executable 'make' == 1
-  --       end,
-  --     },
-  --     { 'nvim-telescope/telescope-ui-select.nvim' },
-  --
-  --     { 'nvim-tree/nvim-web-devicons' },
-  --     {
-  --       'nvim-telescope/telescope-live-grep-args.nvim',
-  --       version = '^1.0.0',
-  --     },
-  --   },
-  --   config = function()
-  --     require('telescope').setup {
-  --       defaults = {
-  --         wrap_results = true,
-  --         sorting_strategy = 'ascending',
-  --         path_display = { 'truncate' },
-  --       },
-  --       pickers = {
-  --         oldfiles = {
-  --           initial_mode = 'normal',
-  --         },
-  --       },
-  --       extensions = {
-  --         ['ui-select'] = {
-  --           require('telescope.themes').get_dropdown(),
-  --         },
-  --       },
-  --     }
-  --
-  --     -- Enable telescope extensions, if they are installed
-  --     pcall(require('telescope').load_extension, 'fzf')
-  --     pcall(require('telescope').load_extension, 'ui-select')
-  --
-  --     -- See `:help telescope.builtin`
-  --     local builtin = require 'telescope.builtin'
-  --     local t = require 'telescope'
-  --     -- stylua: ignore start
-  --     vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = 'Find Help' })
-  --     vim.keymap.set('n', '<leader>fb', builtin.current_buffer_fuzzy_find, { desc = 'Current Buffer Fuzzy Find' })
-  --     vim.keymap.set('n', '<leader>fc', builtin.colorscheme, { desc = 'Find Colorscheme' })
-  --     vim.keymap.set('n', '<leader>fq', builtin.quickfix, { desc = 'Find quickfix' })
-  --     vim.keymap.set('n', '<leader>fk', builtin.keymaps, { desc = 'Find Keymaps' })
-  --     vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Lists files in your current working directory, respects .gitignore' })
-  --     vim.keymap.set('n', '<leader>fs', builtin.builtin, { desc = 'Find builtin ' })
-  --     vim.keymap.set('n', '<leader>fg', builtin.git_files, { desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' })
-  --     vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Searches for the string under your cursor or selection in your current working directory' })
-  --     vim.keymap.set('n', '<leader>fg', builtin.git_status, { desc = 'Searches GIT modified files' })
-  --     vim.keymap.set('n', '<leader>ft', t.extensions.live_grep_args.live_grep_args, { desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' })
-  --     vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' })
-  --     vim.keymap.set('n', '<leader>fr', builtin.resume, { desc = 'Lists the results incl. multi-selections of the previous picker' })
-  --     vim.keymap.set('n', '<leader>fm', builtin.marks, { desc = 'Lists vim marks and their value' })
-  --     vim.keymap.set('n', '<leader>f.', builtin.oldfiles, { desc = 'Find Recent Files ("." for repeat)' })
-  --     vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = 'Find existing buffers' })
-  --     -- stylua: ignore end
-  --
-  --     vim.keymap.set('n', '<leader>/', function()
-  --       -- You can pass additional configuration to telescope to change theme, layout, etc.
-  --       -- builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-  --       --   winblend = 10,
-  --       --   previewer = false,
-  --       -- })
-  --     end, { desc = '[/] Fuzzily search in current buffer' })
-  --
-  --     -- Also possible to pass additional configuration options.
-  --     --  See `:help telescope.builtin.live_grep()` for information about particular keys
-  --     vim.keymap.set('n', '<leader>s/', function()
-  --       builtin.live_grep {
-  --         grep_open_files = true,
-  --         prompt_title = 'Live Grep in Open Files',
-  --       }
-  --     end, { desc = '[S]earch [/] in Open Files' })
-  --
-  --     -- Shortcut for searching your neovim configuration files
-  --     vim.keymap.set('n', '<leader>sn', function()
-  --       builtin.find_files { cwd = vim.fn.stdpath 'config' }
-  --     end, { desc = '[S]earch [N]eovim files' })
-  --   end,
-  -- },
+  {
+    'nvim-telescope/telescope.nvim',
+    event = 'VimEnter',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      {
+        'nvim-telescope/telescope-fzf-native.nvim',
+        build = 'make',
+        cond = function()
+          return vim.fn.executable 'make' == 1
+        end,
+      },
+      { 'nvim-telescope/telescope-ui-select.nvim' },
+
+      { 'nvim-tree/nvim-web-devicons' },
+      {
+        'nvim-telescope/telescope-live-grep-args.nvim',
+        version = '^1.0.0',
+      },
+    },
+    config = function()
+      require('telescope').setup {
+        defaults = {
+          wrap_results = true,
+          sorting_strategy = 'ascending',
+          path_display = { 'truncate' },
+        },
+        pickers = {
+          oldfiles = {
+            initial_mode = 'normal',
+          },
+        },
+        extensions = {
+          ['ui-select'] = {
+            require('telescope.themes').get_dropdown(),
+          },
+        },
+      }
+
+      -- Enable telescope extensions, if they are installed
+      pcall(require('telescope').load_extension, 'fzf')
+      pcall(require('telescope').load_extension, 'ui-select')
+    end,
+
+    -- stylua: ignore start
+    keys = {
+      { "gd", mode = { "n" }, function() require('telescope.builtin').lsp_definitions() end, desc = "Goto Definition" },
+      { "gr", mode = { "n" }, function() require('telescope.builtin').lsp_references() end, desc = "Goto References" },
+      { "gt", mode = { "n" }, function() require('telescope.builtin').lsp_type_definitions() end, desc = "Goto Type definition" },
+
+      { "<leader>sh", mode = { "n" }, function() require('telescope.builtin').help_tags() end, desc = 'Find Help' },
+      { "<leader>fb", mode = { "n" }, function() require('telescope.builtin').current_buffer_fuzzy_find() end, desc = 'Current Buffer Fuzzy Find' },
+      { "<leader>fc", mode = { "n" }, function() require('telescope.builtin').colorscheme() end, desc = 'Find Colorscheme' },
+      { "<leader>fq", mode = { "n" }, function() require('telescope.builtin').quickfix() end, desc = 'Find quickfix' },
+      { "<leader>fk", mode = { "n" }, function() require('telescope.builtin').keymaps() end, desc = 'Find Keymaps' },
+      { "<leader>ff", mode = { "n" }, function() require('telescope.builtin').find_files() end, desc = 'Lists files in your current working directory, respects .gitignore' },
+      { "<D-p>", mode = { "n" }, function() require('telescope.builtin').find_files() end, desc = 'Lists files in your current working directory, respects .gitignore' },
+      { "<leader>fs", mode = { "n" }, function() require('telescope.builtin').builtin() end, desc = 'Find builtin ' },
+      { "<leader>fg", mode = { "n" }, function() require('telescope.builtin').git_files() end, desc = 'Fuzzy search through the output of git ls-files command, respects .gitignore' },
+      { "<leader>fw", mode = { "n" }, function() require('telescope.builtin').grep_string() end, desc = 'Searches for the string under your cursor or selection in your current working directory' },
+      { "<leader>fg", mode = { "n" }, function() require('telescope.builtin').git_status() end, desc = 'Searches GIT modified files' },
+      { "<leader>ft", mode = { "n" }, function() require('telescope').extensions.live_grep_args.live_grep_args() end, desc = 'Search for a string in your current working directory and get results live as you type, respects .gitignore.' },
+      { "<leader>fd", mode = { "n" }, function() require('telescope.builtin').diagnostics() end, desc = 'Lists Diagnostics for all open buffers or a specific buffer. Use option bufnr=0 for current buffer.' },
+      { "<leader>fr", mode = { "n" }, function() require('telescope.builtin').resume() end, desc = 'Lists the results incl. multi-selections of the previous picker' },
+      { "<leader>fm", mode = { "n" }, function() require('telescope.builtin').marks() end, desc = 'Lists vim marks and their value' },
+      { "<leader>f.", mode = { "n" }, function() require('telescope.builtin').oldfiles() end, desc = 'Find Recent Files ("." for repeat)' },
+      { "<leader><leader>", mode = { "n" }, function() require('telescope.builtin').buffers() end, desc = 'Find existing buffers' }
+    },
+    -- stylua: ignore end
+  },
 
   { -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -388,14 +379,6 @@ require('lazy').setup {
           local map = function(keys, func, desc)
             vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
-
-          -- map('gd', require('telescope.builtin').lsp_definitions, 'Goto Definition')
-
-          -- map('gr', require('telescope.builtin').lsp_references, 'Goto References')
-
-          -- map('gI', require('telescope.builtin').lsp_implementations, 'Goto Implementation')
-
-          -- map('gt', require('telescope.builtin').lsp_type_definitions, 'Goto Type definition')
 
           map('gD', vim.lsp.buf.declaration, 'Goto Declaration')
 
@@ -863,7 +846,13 @@ require('lazy').setup {
       { 'kyazdani42/nvim-web-devicons', name = 'kyazdani42-nvim-web-devicons' },
     },
     config = function()
-      require('octo').setup()
+      require('octo').setup {
+        {
+          suppress_missing_scope = {
+            projects_v2 = true,
+          },
+        },
+      }
     end,
   },
 
@@ -1286,13 +1275,11 @@ require('lazy').setup {
           center = {
             -- { action = Util.telescope("files"),                                    desc = " Find file",       icon = " ", key = "f" },
             { action = "ene | startinsert", desc = " New file", icon = " ", key = "n" },
-            -- { action = [[require('fzf-lua').oldfiles()]], desc = " Recent files", icon = " ", key = "r" },
-            -- { action = "[[require('fzf-lua').live_grep()]]", desc = " Find text", icon = " ", key = "g" },
             { action = [[lua require("lazyvim.util").telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
             -- { action = 'lua require("persistence").load()',                        desc = " Restore Session", icon = " ", key = "s" },
             { action = "e ~/.config/nvim/init.lua", desc = " Open Neovim config", icon = " ", key = "c" },
             { action = "Lazy", desc = " Lazy", icon = "󰒲 ", key = "l" },
-            { action = "qa", desc = " Quit", icon = " ", key = "q" },
+            -- { action = "qa", desc = " Quit", icon = " ", key = "q" },
           },
           footer = function()
             local stats = require('lazy').stats()
@@ -1619,5 +1606,11 @@ require('lazy').setup {
     'felpafel/inlay-hint.nvim',
     event = 'LspAttach',
     config = true,
+  },
+  -- Plugin to improve viewing Markdown files in Neovim
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    opts = {},
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
   },
 }
