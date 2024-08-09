@@ -742,15 +742,9 @@ require('lazy').setup {
         indent = { enable = true },
       }
 
-      -- There are additional nvim-treesitter modules that you can use to interact
-      -- with nvim-treesitter. You should go explore a few and see what interests you:
-      --
-      --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-      --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-      --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
       require('treesitter-context').setup {
         enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
-        max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
+        max_lines = 3, -- How many lines the window should span. Values <= 0 mean no limit.
         min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
         line_numbers = true,
         multiline_threshold = 10, -- Maximum number of lines to show for a single context
@@ -762,7 +756,10 @@ require('lazy').setup {
         zindex = 20, -- The Z-index of the context window
         on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
       }
-      vim.cmd [[hi TreesitterContextLineNumberBottom gui=underline guisp=Grey]]
+
+      vim.cmd [[hi TreesitterContextLineNumberBottom gui=underline guisp=#191A21]]
+      vim.cmd [[hi TreesitterContextLineNumber guibg=#21222C]]
+      vim.cmd [[hi TreesitterContext guibg=#21222C]]
     end,
   },
 
