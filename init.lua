@@ -83,18 +83,6 @@ vim.keymap.set('n', '<space>lf', '<cmd>lua vim.lsp.buf.format{async = true}<CR>'
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
--- TODO: DO I NEED THIS since gbprod/yanky.nvim ?
--- Highlight when yanking (copying) text
---  Try it with `yap` in normal mode
---  See `:help vim.highlight.on_yank()`
--- vim.api.nvim_create_autocmd('TextYankPost', {
---   desc = 'Highlight when yanking (copying) text',
---   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
---   callback = function()
---     vim.highlight.on_yank()
---   end,
--- })
-
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -124,7 +112,6 @@ require('lazy').setup {
   {
     'folke/flash.nvim',
     event = 'VeryLazy',
-    ---@type Flash.Config
     opts = {
       modes = {
         search = {
@@ -747,7 +734,7 @@ require('lazy').setup {
         max_lines = 3, -- How many lines the window should span. Values <= 0 mean no limit.
         min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
         line_numbers = true,
-        multiline_threshold = 10, -- Maximum number of lines to show for a single context
+        multiline_threshold = 1, -- Maximum number of lines to show for a single context
         trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
         mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
         -- Separator between context and content. Should be a single character string, like '-'.
