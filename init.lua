@@ -402,21 +402,6 @@ require('lazy').setup {
             })
           end
         end,
-
-        require('lspconfig').gleam.setup {},
-
-        require('lspconfig').rust_analyzer.setup {
-          settings = {
-            ['rust-analyzer'] = {
-              check = {
-                command = 'clippy',
-              },
-              diagnostics = {
-                enable = true,
-              },
-            },
-          },
-        },
       })
 
       -- LSP servers and clients are able to communicate to each other what features they support.
@@ -448,49 +433,82 @@ require('lazy').setup {
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
+        --
 
+        -- gleam = {},
+
+        rust_analyzer = {
+          settings = {
+            ['rust-analyzer'] = {
+              check = {
+                command = 'clippy',
+              },
+              diagnostics = {
+                enable = true,
+              },
+              inlayHints = {
+                bindingModeHints = {
+                  enable = false,
+                },
+                chainingHints = {
+                  enable = true,
+                },
+                closingBraceHints = {
+                  enable = true,
+                  minLines = 25,
+                },
+                closureReturnTypeHints = {
+                  enable = 'never',
+                },
+                lifetimeElisionHints = {
+                  enable = 'never',
+                  useParameterNames = false,
+                },
+                maxLength = 25,
+                parameterHints = {
+                  enable = true,
+                },
+                reborrowHints = {
+                  enable = 'never',
+                },
+                renderColons = true,
+                typeHints = {
+                  enable = true,
+                  hideClosureInitialization = false,
+                  hideNamedConstructor = false,
+                },
+              },
+            },
+          },
+        },
         lua_ls = {
-          -- cmd = {...},
-          -- filetypes { ...},
-          -- capabilities = {},
           settings = {
             Lua = {
               runtime = { version = 'LuaJIT' },
               workspace = {
                 checkThirdParty = false,
                 -- Tells lua_ls where to find all the Lua files that you have loaded
-                -- for your neovim configuration.
                 library = {
                   '${3rd}/luv/library',
                   unpack(vim.api.nvim_get_runtime_file('', true)),
                 },
-                -- If lua_ls is really slow on your computer, you can try this instead:
-                -- library = { vim.env.VIMRUNTIME },
               },
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
               -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu
       require('mason').setup()
 
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format lua code
       })
+
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
@@ -727,6 +745,105 @@ require('lazy').setup {
         auto_install = true,
         highlight = { enable = true },
         indent = { enable = true },
+        incremental_selection = {
+          enable = true,
+          keymaps = {
+            init_selection = '\\',
+            node_incremental = '\\',
+            scope_incremental = '<c-s>',
+            node_decremental = '<BS>',
+          },
+        },
+        textobjects = {
+          select = {
+            enable = true,
+
+            -- Automatically jump forward to textobj, similar to targets.vim
+            lookahead = true,
+
+            keymaps = {
+              -- You can use the capture groups defined in textobjects.scm
+              ['a='] = { query = '@assignment.outer', desc = 'Select outer part of an assignment' },
+              ['i='] = { query = '@assignment.inner', desc = 'Select inner part of an assignment' },
+              ['l='] = { query = '@assignment.lhs', desc = 'Select left hand side of an assignment' },
+              ['r='] = { query = '@assignment.rhs', desc = 'Select right hand side of an assignment' },
+
+              -- works for javascript/typescript files (custom capture I created in after/queries/ecma/textobjects.scm)
+              ['a:'] = { query = '@property.outer', desc = 'Select outer part of an object property' },
+              ['i:'] = { query = '@property.inner', desc = 'Select inner part of an object property' },
+              ['l:'] = { query = '@property.lhs', desc = 'Select left part of an object property' },
+              ['r:'] = { query = '@property.rhs', desc = 'Select right part of an object property' },
+
+              ['aa'] = { query = '@parameter.outer', desc = 'Select outer part of a parameter/argument' },
+              ['ia'] = { query = '@parameter.inner', desc = 'Select inner part of a parameter/argument' },
+
+              ['ai'] = { query = '@conditional.outer', desc = 'Select outer part of a conditional' },
+              ['ii'] = { query = '@conditional.inner', desc = 'Select inner part of a conditional' },
+
+              ['al'] = { query = '@loop.outer', desc = 'Select outer part of a loop' },
+              ['il'] = { query = '@loop.inner', desc = 'Select inner part of a loop' },
+
+              ['af'] = { query = '@call.outer', desc = 'Select outer part of a function call' },
+              ['if'] = { query = '@call.inner', desc = 'Select inner part of a function call' },
+
+              ['am'] = { query = '@function.outer', desc = 'Select outer part of a method/function definition' },
+              ['im'] = { query = '@function.inner', desc = 'Select inner part of a method/function definition' },
+
+              ['ac'] = { query = '@class.outer', desc = 'Select outer part of a class' },
+              ['ic'] = { query = '@class.inner', desc = 'Select inner part of a class' },
+            },
+          },
+          swap = {
+            enable = true,
+            swap_next = {
+              ['<leader>na'] = '@parameter.inner', -- swap parameters/argument with next
+              ['<leader>n:'] = '@property.outer', -- swap object property with next
+              ['<leader>nm'] = '@function.outer', -- swap function with next
+            },
+            swap_previous = {
+              ['<leader>pa'] = '@parameter.inner', -- swap parameters/argument with prev
+              ['<leader>p:'] = '@property.outer', -- swap object property with prev
+              ['<leader>pm'] = '@function.outer', -- swap function with previous
+            },
+          },
+          move = {
+            enable = true,
+            set_jumps = true, -- whether to set jumps in the jumplist
+            goto_next_start = {
+              [']f'] = { query = '@call.outer', desc = 'Next function call start' },
+              [']m'] = { query = '@function.outer', desc = 'Next method/function def start' },
+              [']c'] = { query = '@class.outer', desc = 'Next class start' },
+              [']i'] = { query = '@conditional.outer', desc = 'Next conditional start' },
+              [']l'] = { query = '@loop.outer', desc = 'Next loop start' },
+
+              -- You can pass a query group to use query from `queries/<lang>/<query_group>.scm file in your runtime path.
+              -- Below example nvim-treesitter's `locals.scm` and `folds.scm`. They also provide highlights.scm and indent.scm.
+              [']s'] = { query = '@scope', query_group = 'locals', desc = 'Next scope' },
+              [']z'] = { query = '@fold', query_group = 'folds', desc = 'Next fold' },
+            },
+            goto_next_end = {
+              [']F'] = { query = '@call.outer', desc = 'Next function call end' },
+              [']M'] = { query = '@function.outer', desc = 'Next method/function def end' },
+              [']C'] = { query = '@class.outer', desc = 'Next class end' },
+              [']I'] = { query = '@conditional.outer', desc = 'Next conditional end' },
+              [']L'] = { query = '@loop.outer', desc = 'Next loop end' },
+            },
+            goto_previous_start = {
+              ['[f'] = { query = '@call.outer', desc = 'Prev function call start' },
+              ['[m'] = { query = '@function.outer', desc = 'Prev method/function def start' },
+              ['[c'] = { query = '@class.outer', desc = 'Prev class start' },
+              ['[i'] = { query = '@conditional.outer', desc = 'Prev conditional start' },
+              ['[l'] = { query = '@loop.outer', desc = 'Prev loop start' },
+            },
+            goto_previous_end = {
+              ['[F'] = { query = '@call.outer', desc = 'Prev function call end' },
+              ['[M'] = { query = '@function.outer', desc = 'Prev method/function def end' },
+              ['[C'] = { query = '@class.outer', desc = 'Prev class end' },
+              ['[I'] = { query = '@conditional.outer', desc = 'Prev conditional end' },
+              ['[L'] = { query = '@loop.outer', desc = 'Prev loop end' },
+            },
+          },
+        },
       }
 
       require('treesitter-context').setup {
@@ -744,6 +861,7 @@ require('lazy').setup {
         on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
       }
 
+      -- Dracula Color
       vim.cmd [[hi TreesitterContextLineNumberBottom gui=underline guisp=#191A21]]
       vim.cmd [[hi TreesitterContextLineNumber guibg=#21222C]]
       vim.cmd [[hi TreesitterContext guibg=#21222C]]
@@ -901,7 +1019,7 @@ require('lazy').setup {
     end,
     lazy = false,
     keys = {
-      { '<leader>e', '<cmd>Neotree toggle filesystem reveal_force_cwd position=left<cr>', desc = 'Toggle Explorer', mode = { 'n' } },
+      { '<leader>e', '<cmd>Neotree toggle filesystem reveal_force_cwd position=float<cr>', desc = 'Toggle Explorer', mode = { 'n' } },
     },
   },
 
@@ -1580,6 +1698,9 @@ require('lazy').setup {
     },
   },
 
+  -- center the currently focused buffer to the middle of the screen.
+  { 'shortcuts/no-neck-pain.nvim', version = '*' },
+
   {
     'norcalli/nvim-colorizer.lua',
     config = function()
@@ -1594,7 +1715,13 @@ require('lazy').setup {
   -- Plugin to improve viewing Markdown files in Neovim
   {
     'MeanderingProgrammer/render-markdown.nvim',
+    enabled = false,
     opts = {},
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+  },
+  {
+    'pmizio/typescript-tools.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+    opts = {},
   },
 }
