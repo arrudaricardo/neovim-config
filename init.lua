@@ -431,7 +431,7 @@ require('lazy').setup {
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        -- tsserver = {},
+        tsserver = {},
         --
         --
 
@@ -793,19 +793,6 @@ require('lazy').setup {
               ['ic'] = { query = '@class.inner', desc = 'Select inner part of a class' },
             },
           },
-          swap = {
-            enable = true,
-            swap_next = {
-              ['<leader>na'] = '@parameter.inner', -- swap parameters/argument with next
-              ['<leader>n:'] = '@property.outer', -- swap object property with next
-              ['<leader>nm'] = '@function.outer', -- swap function with next
-            },
-            swap_previous = {
-              ['<leader>pa'] = '@parameter.inner', -- swap parameters/argument with prev
-              ['<leader>p:'] = '@property.outer', -- swap object property with prev
-              ['<leader>pm'] = '@function.outer', -- swap function with previous
-            },
-          },
           move = {
             enable = true,
             set_jumps = true, -- whether to set jumps in the jumplist
@@ -845,6 +832,11 @@ require('lazy').setup {
           },
         },
       }
+      local ts_repeat_move = require 'nvim-treesitter.textobjects.repeatable_move'
+
+      -- vim way: ; goes to the direction you were moving.
+      vim.keymap.set({ 'n', 'x', 'o' }, ';', ts_repeat_move.repeat_last_move)
+      vim.keymap.set({ 'n', 'x', 'o' }, ',', ts_repeat_move.repeat_last_move_opposite)
 
       require('treesitter-context').setup {
         enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
@@ -1357,7 +1349,12 @@ require('lazy').setup {
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
-    config = true,
+    event = 'VeryLazy',
+    opts = {
+      options = {
+        globalstatus = true,
+      },
+    },
   },
 
   {
@@ -1719,9 +1716,25 @@ require('lazy').setup {
     opts = {},
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
   },
+
+  -- TypeScript integration NeoVim deserves TODO: Check after 1.0
   {
     'pmizio/typescript-tools.nvim',
+    enabled = false,
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
     opts = {},
+  },
+  -- A small automated session manager for Neovim
+  {
+    'rmagatti/auto-session',
+    lazy = false,
+    dependencies = {
+      'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
+    },
+    config = function()
+      require('auto-session').setup {
+        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+      }
+    end,
   },
 }
