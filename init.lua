@@ -192,9 +192,8 @@ require('lazy').setup {
       { '<leader>hd', mode = { 'n' }, function() require('gitsigns').diffthis() end, desc = 'Diff This' },
       { '<leader>hD', mode = { 'n' }, function() require('gitsigns').diffthis('~') end, desc = 'Diff Against Previous Version' },
       { '<leader>td', mode = { 'n' }, function() require('gitsigns').toggle_deleted() end, desc = 'Toggle Deleted' },
-    }
+    },
     -- stylua: ignore end
-,
   },
 
   {
@@ -1616,85 +1615,6 @@ require('lazy').setup {
     -- stylua: ignore end
     --
   },
-  {
-    'robitx/gp.nvim',
-    config = function()
-      local conf = {
-        providers = {
-          openai = {
-            disable = true,
-            endpoint = 'https://api.openai.com/v1/chat/completions',
-            secret = os.getenv 'OPENAI_API_KEY',
-          },
-          copilot = {
-            disable = false,
-            endpoint = 'https://api.githubcopilot.com/chat/completions',
-            secret = {
-              'bash',
-              '-c',
-              "cat ~/.config/github-copilot/hosts.json | sed -e 's/.*oauth_token...//;s/\".*//'",
-            },
-          },
-        },
-        chat_shortcut_respond = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<CR>' },
-        chat_shortcut_delete = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>d' },
-        chat_shortcut_stop = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-g>s' },
-        chat_shortcut_new = { modes = { 'n', 'i', 'v', 'x' }, shortcut = '<C-n>' },
-
-        chat_free_cursor = true,
-      }
-      require('gp').setup(conf)
-    end,
-
-    keys = {
-      -- Cursor keymapping
-
-      { '<D-l>', mode = { 'n', 'i' }, '<cmd>GpChatToggle<cr>', desc = 'GPT prompt Toggle Chat' },
-      { '<D-l>', mode = 'v', ":<C-u>'<,'>GpChatToggle<cr>", desc = 'GPT prompt Visual Toggle Chat' },
-
-      -- Chat commands
-      { '<C-g>c', mode = { 'n', 'i' }, '<cmd>GpChatNew<cr>', desc = 'GPT prompt New Chat' },
-      { '<C-g>t', mode = { 'n', 'i' }, '<cmd>GpChatToggle<cr>', desc = 'GPT prompt Toggle Chat' },
-      { '<C-g>f', mode = { 'n', 'i' }, '<cmd>GpChatFinder<cr>', desc = 'GPT prompt Chat Finder' },
-      { '<C-g>c', mode = 'v', ":<C-u>'<,'>GpChatNew<cr>", desc = 'GPT prompt Visual Chat New' },
-      { '<C-g>p', mode = 'v', ":<C-u>'<,'>GpChatPaste<cr>", desc = 'GPT prompt Visual Chat Paste' },
-      { '<C-g>t', mode = 'v', ":<C-u>'<,'>GpChatToggle<cr>", desc = 'GPT prompt Visual Toggle Chat' },
-      { '<C-g><C-x>', mode = { 'n', 'i' }, '<cmd>GpChatNew split<cr>', desc = 'GPT prompt New Chat split' },
-      { '<C-g><C-v>', mode = { 'n', 'i' }, '<cmd>GpChatNew vsplit<cr>', desc = 'GPT prompt New Chat vsplit' },
-      { '<C-g><C-t>', mode = { 'n', 'i' }, '<cmd>GpChatNew tabnew<cr>', desc = 'GPT prompt New Chat tabnew' },
-      { '<C-g><C-x>', mode = 'v', ":<C-u>'<,'>GpChatNew split<cr>", desc = 'GPT prompt Visual Chat New split' },
-      { '<C-g><C-v>', mode = 'v', ":<C-u>'<,'>GpChatNew vsplit<cr>", desc = 'GPT prompt Visual Chat New vsplit' },
-      { '<C-g><C-t>', mode = 'v', ":<C-u>'<,'>GpChatNew tabnew<cr>", desc = 'GPT prompt Visual Chat New tabnew' },
-
-      -- Prompt commands
-      { '<D-k>r', mode = { 'n', 'i' }, '<cmd>GpRewrite<cr>', desc = 'GPT prompt Inline Rewrite' },
-      { '<D-k>a', mode = { 'n', 'i' }, '<cmd>GpAppend<cr>', desc = 'GPT prompt Append (after)' },
-      { '<D-k>b', mode = { 'n', 'i' }, '<cmd>GpPrepend<cr>', desc = 'GPT prompt Prepend (before)' },
-      { '<D-k>r', mode = 'v', ":<C-u>'<,'>GpRewrite<cr>", desc = 'GPT prompt Visual Rewrite' },
-      { '<D-k>a', mode = 'v', ":<C-u>'<,'>GpAppend<cr>", desc = 'GPT prompt Visual Append (after)' },
-      { '<D-k>b', mode = 'v', ":<C-u>'<,'>GpPrepend<cr>", desc = 'GPT prompt Visual Prepend (before)' },
-      { '<D-k>i', mode = 'v', ":<C-u>'<,'>GpImplement<cr>", desc = 'GPT prompt Implement selection' },
-
-      { '<C-g>gp', mode = { 'n', 'i' }, '<cmd>GpPopup<cr>', desc = 'GPT prompt Popup' },
-      { '<C-g>ge', mode = { 'n', 'i' }, '<cmd>GpEnew<cr>', desc = 'GPT prompt GpEnew' },
-      { '<C-g>gn', mode = { 'n', 'i' }, '<cmd>GpNew<cr>', desc = 'GPT prompt GpNew' },
-      { '<C-g>gv', mode = { 'n', 'i' }, '<cmd>GpVnew<cr>', desc = 'GPT prompt GpVnew' },
-      { '<C-g>gt', mode = { 'n', 'i' }, '<cmd>GpTabnew<cr>', desc = 'GPT prompt GpTabnew' },
-      { '<C-g>gp', mode = 'v', ":<C-u>'<,'>GpPopup<cr>", desc = 'GPT prompt Visual Popup' },
-      { '<C-g>ge', mode = 'v', ":<C-u>'<,'>GpEnew<cr>", desc = 'GPT prompt Visual GpEnew' },
-      { '<C-g>gn', mode = 'v', ":<C-u>'<,'>GpNew<cr>", desc = 'GPT prompt Visual GpNew' },
-      { '<C-g>gv', mode = 'v', ":<C-u>'<,'>GpVnew<cr>", desc = 'GPT prompt Visual GpVnew' },
-      { '<C-g>gt', mode = 'v', ":<C-u>'<,'>GpTabnew<cr>", desc = 'GPT prompt Visual GpTabnew' },
-
-      { '<C-g>x', mode = { 'n', 'i' }, '<cmd>GpContext<cr>', desc = 'GPT prompt Toggle Context' },
-      { '<C-g>x', mode = 'v', ":<C-u>'<,'>GpContext<cr>", desc = 'GPT prompt Visual Toggle Context' },
-
-      -- General commands
-      { '<C-g>s', mode = { 'n', 'i', 'v', 'x' }, '<cmd>GpStop<cr>', desc = 'GPT prompt Stop' },
-      { '<C-g>n', mode = { 'n', 'i', 'v', 'x' }, '<cmd>GpNextAgent<cr>', desc = 'GPT prompt Next Agent' },
-    },
-  },
-
   -- center the currently focused buffer to the middle of the screen.
   { 'shortcuts/no-neck-pain.nvim', version = '*' },
 
@@ -1736,5 +1656,51 @@ require('lazy').setup {
         auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
       }
     end,
+  },
+  -- Use your Neovim like using Cursor AI IDE!
+  {
+    'yetone/avante.nvim',
+    event = 'VeryLazy',
+    lazy = false,
+    version = false, -- set this if you want to always pull the latest change
+    opts = {
+      -- add any opts here
+    },
+    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+    build = 'make',
+    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+    dependencies = {
+      'stevearc/dressing.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below dependencies are optional,
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
+      },
+    },
   },
 }
